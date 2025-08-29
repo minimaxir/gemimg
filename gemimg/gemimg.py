@@ -1,7 +1,12 @@
 import os
+from dataclasses import dataclass
+from typing import List, Union
 
 import httpx
+import PIL
 from dotenv import load_dotenv
+
+from .utils import b64_to_img, img_b64_part, img_to_b64
 
 load_dotenv()
 
@@ -13,13 +18,28 @@ class gemimg:
         self.client = httpx.Client()
         self.model = model
 
-    def generate(self, system, temperature=1.0):
+    def generate(
+        self,
+        prompt: str = None,
+        imgs: Union[str, List[str]] = None,
+        save=True,
+        temperature=1.0,
+    ):
+        assert prompt or imgs, "Need `promot` or `imgs` to generate."
+        parts = []
+
+        if imgs:
+            img_b64s = [img_to_b64(x) for x in imgs]
+            parts.append(img_b64_part(x) for x in img_b64s)
+
+        if prompt:
+            parts.append([{"text": prompt}])
+
         query_params = {
             "generationConfig": {
                 "temperature": temperature,
             },
-            "system_instruction": {"parts": [{"text": system.strip()}]},
-            "contents": [{"parts": [{"text": ""}]}],
+            "contents": [{"parts": parts}],
         }
 
         params = {"key": self.api_key}
@@ -32,14 +52,44 @@ class gemimg:
 
         try:
             r = self.client.post(
-                api_url, params=params, json=query_params, headers=headers, timeout=600
+                api_url, json=query_params, params=params, headers=headers, timeout=120
             )
         except httpx.exceptions.Timeout:
             return None
 
-        try:
-            gen_text = r.json()["candidates"][0]["content"]["parts"][0]["text"]
-        except KeyError:
-            print(r.json())
+        response_parts = r.json()["candidates"][0]["content"]["parts"]
 
-        return gen_text, r.json()
+        out_texts = []
+        out_imgs = []
+
+        for part in response_parts:
+            if part.get("text"):
+                out_texts.append(part["text"])
+            elif part.get("inlineData"):
+                out_imgs.append(b64_to_img(part["inlineData"]["data"]))
+
+        if save:
+            response_id = r.json()["responseId"]
+            if len(out_imgs) == 1:
+                out_imgs[0].save(f"{response_id}.webp", quality=75)
+            elif len(out_imgs) > 1:
+                for i, img in enumerate(out_imgs):
+                    img.save(f"{response_id}-{i}.webp", quality=75)
+
+        return gen(texts=out_texts, images=out_imgs)
+
+
+@dataclass
+class gen:
+    texts: List[str]
+    images: List[PIL.Image]
+
+    @property
+    def image(self):
+        assert self.images, "No images generated."
+        return self.images[0]
+
+    @property
+    def text(self):
+        assert self.texts, "No images generated."
+        return self.text[0]

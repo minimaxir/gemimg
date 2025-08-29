@@ -32,7 +32,7 @@ def resize_image(img, max_size=768):
     return resized_img
 
 
-def img_to_base64_str(img, resize=True):
+def img_to_b64(img, resize=True):
     if resize:
         img = resize_image(img)
 
@@ -41,3 +41,13 @@ def img_to_base64_str(img, resize=True):
     img_base64 = base64.b64encode(buffered.getvalue())
     img_base64_str = img_base64.decode("utf-8")
     return img_base64_str
+
+
+def b64_to_img(img_b64: str):
+    b64_bytes = io.BytesIO(base64.decodebytes(bytes(img_b64, "utf-8")))
+    return PIL.Image.open(b64_bytes)
+
+
+def img_b64_part(img_b64):
+    part = {"inline_data": {"mime_type": "image/webp", "data": img_b64}}
+    return part

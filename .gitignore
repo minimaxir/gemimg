@@ -4,4 +4,10 @@
 .env
 .venv
 *.csv
-/test_notebooks
+test_notebooks/
+.vscode/
+__pycache__/
+.ipynb_checkpoints
+gemimg.egg-info/
+dist/
+build/

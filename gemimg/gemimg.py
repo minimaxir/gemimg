@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from typing import List, Union
 
 import httpx
-import PIL
 from dotenv import load_dotenv
+from PIL import Image
 
 from .utils import b64_to_img, img_b64_part, img_to_b64
 
@@ -23,7 +23,7 @@ class gemimg:
     def generate(
         self,
         prompt: str = None,
-        imgs: Union[str, PIL.Image, List[str], List[PIL.Image]] = None,
+        imgs: Union[str, Image, List[str], List[Image]] = None,
         resize_inputs: bool = True,
         save: bool = True,
         temperature: float = 1.0,
@@ -33,7 +33,7 @@ class gemimg:
 
         if imgs:
             # if user doesn't input a list
-            if isinstance(imgs, str) or isinstance(imgs, PIL.Image):
+            if isinstance(imgs, str) or isinstance(imgs, Image):
                 imgs = [imgs]
 
             img_b64s = [img_to_b64(x, resize_inputs) for x in imgs]
@@ -100,7 +100,7 @@ class gemimg:
 @dataclass
 class ImageGen:
     texts: List[str]
-    images: List[PIL.Image]
+    images: List[Image]
 
     @property
     def image(self):

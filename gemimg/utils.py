@@ -1,7 +1,7 @@
 import base64
 import io
 
-import PIL
+from PIL import Image
 
 
 def resize_image(img, max_size=768):
@@ -26,7 +26,7 @@ def resize_image(img, max_size=768):
     new_height = int(height * scale_factor)
 
     # Resize the image
-    resized_img = img.resize((new_width, new_height), PIL.Image.Resampling.LANCZOS)
+    resized_img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
     # resized_img.save("test.png")
     return resized_img
@@ -37,7 +37,7 @@ def img_to_b64(img, resize=True):
     Convert an input image (or path to an image) to base64.
     """
     if isinstance(img, str):
-        img = PIL.Image.open(img)
+        img = Image.open(img)
     if resize:
         img = resize_image(img)
 
@@ -50,10 +50,10 @@ def img_to_b64(img, resize=True):
 
 def b64_to_img(img_b64: str):
     """
-    Convert a base64 encoding of an image into a PIL.Image object.
+    Convert a base64 encoding of an image into a PIL Image object.
     """
     b64_bytes = io.BytesIO(base64.decodebytes(bytes(img_b64, "utf-8")))
-    return PIL.Image.open(b64_bytes)
+    return Image.open(b64_bytes)
 
 
 def img_b64_part(img_b64):

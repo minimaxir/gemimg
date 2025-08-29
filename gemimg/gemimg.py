@@ -38,7 +38,7 @@ class gemimg:
             parts.append(img_b64_part(x) for x in img_b64s)
 
         if prompt:
-            parts.append([{"text": prompt}])
+            parts.append([{"text": prompt.strip()}])
 
         query_params = {
             "generationConfig": {
@@ -62,7 +62,15 @@ class gemimg:
         except httpx.exceptions.Timeout:
             return None
 
-        response_parts = r.json()["candidates"][0]["content"]["parts"]
+        r_json = r.json()
+
+        # check if no image was returned due to prohibited generation
+        finish_reason = r_json["candidates"][0].get("finishReason")
+        if finish_reason == "PROHIBITED_CONTENT":
+            print(f"Image was not generated due to {finish_reason}.")
+            return None
+
+        response_parts = r_json["candidates"][0]["content"]["parts"]
 
         out_texts = []
         out_imgs = []
@@ -74,7 +82,7 @@ class gemimg:
                 out_imgs.append(b64_to_img(part["inlineData"]["data"]))
 
         if save:
-            response_id = r.json()["responseId"]
+            response_id = r_json["responseId"]
             if len(out_imgs) == 1:
                 out_imgs[0].save(f"{response_id}.webp", quality=75)
             elif len(out_imgs) > 1:

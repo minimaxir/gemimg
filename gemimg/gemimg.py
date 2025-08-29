@@ -15,7 +15,7 @@ load_dotenv()
 class gemimg:
     api_key: str = os.getenv("GEMINI_API_KEY")
     client: httpx.Client = httpx.Client()
-    model: str = "gemini-2.5-flash"
+    model: str = "gemini-2.5-flash-image"
 
     def __post_init__(self):
         assert self.api_key, "GEMINI_API_KEY is not provided or defined in .env."
@@ -25,8 +25,8 @@ class gemimg:
         prompt: str = None,
         imgs: Union[str, PIL.Image, List[str], List[PIL.Image]] = None,
         resize_inputs: bool = True,
-        save=True,
-        temperature=1.0,
+        save: bool = True,
+        temperature: float = 1.0,
     ):
         assert prompt or imgs, "Need `prompt` or `imgs` to generate."
         parts = []
@@ -62,6 +62,7 @@ class gemimg:
                 api_url, json=query_params, params=params, headers=headers, timeout=120
             )
         except httpx.exceptions.Timeout:
+            print("Request Timeout")
             return None
 
         r_json = r.json()
@@ -77,6 +78,8 @@ class gemimg:
         out_texts = []
         out_imgs = []
 
+        # Gemini's API returns both text and image data in parts.
+        # Multiple image generations are possible.
         for part in response_parts:
             if part.get("text"):
                 out_texts.append(part["text"])
@@ -91,11 +94,11 @@ class gemimg:
                 for i, img in enumerate(out_imgs):
                     img.save(f"{response_id}-{i}.webp", quality=75)
 
-        return gen(texts=out_texts, images=out_imgs)
+        return ImageGen(texts=out_texts, images=out_imgs)
 
 
 @dataclass
-class gen:
+class ImageGen:
     texts: List[str]
     images: List[PIL.Image]
 

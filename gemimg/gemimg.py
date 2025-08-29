@@ -11,12 +11,14 @@ from .utils import b64_to_img, img_b64_part, img_to_b64
 load_dotenv()
 
 
+@dataclass
 class gemimg:
-    def __init__(self, model="gemini-2.5-flash"):
-        assert os.getenv("GEMINI_API_KEY"), "Gemini API key is not defined in .env."
-        self.api_key = os.getenv("GEMINI_API_KEY")
-        self.client = httpx.Client()
-        self.model = model
+    api_key: str = os.getenv("GEMINI_API_KEY")
+    client: httpx.Client = httpx.Client()
+    model: str = "gemini-2.5-flash"
+
+    def __post_init__(self):
+        assert self.api_key, "GEMINI_API_KEY is not provided or defined in .env."
 
     def generate(
         self,

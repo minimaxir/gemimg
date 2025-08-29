@@ -1,0 +1,7 @@
+.DS_Store
+*.parquet
+*.nosync
+.env
+.venv
+*.csv
+/test_notebooks

@@ -21,15 +21,20 @@ class gemimg:
     def generate(
         self,
         prompt: str = None,
-        imgs: Union[str, List[str]] = None,
+        imgs: Union[str, PIL.Image, List[str], List[PIL.Image]] = None,
+        resize_inputs: bool = True,
         save=True,
         temperature=1.0,
     ):
-        assert prompt or imgs, "Need `promot` or `imgs` to generate."
+        assert prompt or imgs, "Need `prompt` or `imgs` to generate."
         parts = []
 
         if imgs:
-            img_b64s = [img_to_b64(x) for x in imgs]
+            # if user doesn't input a list
+            if isinstance(imgs, str) or isinstance(imgs, PIL.Image):
+                imgs = [imgs]
+
+            img_b64s = [img_to_b64(x, resize_inputs) for x in imgs]
             parts.append(img_b64_part(x) for x in img_b64s)
 
         if prompt:
@@ -86,10 +91,8 @@ class gen:
 
     @property
     def image(self):
-        assert self.images, "No images generated."
-        return self.images[0]
+        return self.images[0] if self.images else None
 
     @property
     def text(self):
-        assert self.texts, "No images generated."
-        return self.text[0]
+        return self.text[0] if self.texts else None

@@ -17,7 +17,7 @@ class GemImg:
         default_factory=lambda: os.getenv("GEMINI_API_KEY"), repr=False
     )
     client: httpx.Client = field(default_factory=httpx.Client, repr=False)
-    model: str = "gemini-2.5-flash-image"
+    model: str = "gemini-2.5-flash-image-preview"
 
     def __post_init__(self):
         assert self.api_key, "GEMINI_API_KEY is not provided or defined in .env."
@@ -51,17 +51,13 @@ class GemImg:
             "contents": [{"parts": parts}],
         }
 
-        params = {"key": self.api_key}
-
-        headers = {
-            "Content-Type": "application/json",
-        }
+        headers = {"Content-Type": "application/json", "x-goog-api-key": self.api_key}
 
         api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
 
         try:
             r = self.client.post(
-                api_url, json=query_params, params=params, headers=headers, timeout=120
+                api_url, json=query_params, headers=headers, timeout=120
             )
         except httpx.exceptions.Timeout:
             print("Request Timeout")

@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass, field
-from typing import List, Union
+from typing import List, Optional, Union
 
 import httpx
 from dotenv import load_dotenv
@@ -22,96 +22,102 @@ class GemImg:
 
     def generate(
         self,
-        prompt: str = None,
-        imgs: Union[str, Image.Image, List[str], List[Image.Image]] = None,
+        prompt: Optional[str] = None,
+        imgs: Optional[Union[str, Image.Image, List[str], List[Image.Image]]] = None,
         resize_inputs: bool = True,
         save: bool = True,
         temperature: float = 1.0,
         webp: bool = False,
         n: int = 1,
-    ):
+    ) -> Optional["ImageGen"]:
         assert prompt or imgs, "Need `prompt` or `imgs` to generate."
 
         if n > 1:
             assert temperature != 0.0, (
                 "Generating multiple images at temperature = 0.0 is redundant."
             )
-            return self.generate_n(n=n, **locals())
+            # Exclude 'self' from locals to avoid conflicts when passing as kwargs
+            kwargs = {k: v for k, v in locals().items() if k != "self"}
+            return self._generate_multiple(**kwargs)
 
         parts = []
 
         if imgs:
-            # if user doesn't input a list
-            if isinstance(imgs, str) or isinstance(imgs, Image.Image):
+            # Ensure imgs is a list
+            if isinstance(imgs, (str, Image.Image)):
                 imgs = [imgs]
 
-            img_b64s = [img_to_b64(x, resize_inputs) for x in imgs]
-            parts.append([img_b64_part(x) for x in img_b64s])
+            img_b64_strings = [img_to_b64(img, resize_inputs) for img in imgs]
+            parts.extend([img_b64_part(b64_str) for b64_str in img_b64_strings])
 
         if prompt:
             parts.append({"text": prompt.strip()})
 
         query_params = {
-            "generationConfig": {
-                "temperature": temperature,
-            },
+            "generationConfig": {"temperature": temperature},
             "contents": [{"parts": parts}],
         }
 
         headers = {"Content-Type": "application/json", "x-goog-api-key": self.api_key}
-
         api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
 
         try:
-            r = self.client.post(
+            response = self.client.post(
                 api_url, json=query_params, headers=headers, timeout=120
             )
         except httpx.exceptions.Timeout:
             print("Request Timeout")
             return None
 
-        r_json = r.json()
+        response_data = response.json()
 
-        # check if no image was returned due to prohibited generation
-        finish_reason = r_json["candidates"][0].get("finishReason")
+        # Check for prohibited content
+        candidates = response_data["candidates"][0]
+        finish_reason = candidates.get("finishReason")
         if finish_reason == "PROHIBITED_CONTENT":
             print(f"Image was not generated due to {finish_reason}.")
             return None
 
-        response_parts = r_json["candidates"][0]["content"]["parts"]
+        response_parts = candidates["content"]["parts"]
 
-        out_texts = []
-        out_imgs = []
-        out_img_paths = []
+        output_texts = []
+        output_images = []
 
-        # Gemini's API returns both text and image data in parts.
-        # Multiple image generations are possible.
+        # Parse response parts for text and images
         for part in response_parts:
-            if part.get("text"):
-                out_texts.append(part["text"])
-            elif part.get("inlineData"):
-                out_imgs.append(b64_to_img(part["inlineData"]["data"]))
+            if "text" in part:
+                output_texts.append(part["text"])
+            elif "inlineData" in part:
+                output_images.append(b64_to_img(part["inlineData"]["data"]))
 
+        output_image_paths = []
         if save:
-            response_id = r_json["responseId"]
-            out_type = "webp" if webp else "png"
-            if len(out_imgs) == 1:
-                out_img_path = f"{response_id}.{out_type}"
-                out_imgs[0].save(out_img_path)
-                out_img_paths.append(out_img_path)
-            elif len(out_imgs) > 1:
-                for i, img in enumerate(out_imgs):
-                    out_img_path = f"{response_id}-{i}.{out_type}"
-                    img.save(out_img_path)
-                    out_img_paths.append(out_img_path)
+            response_id = response_data["responseId"]
+            file_extension = "webp" if webp else "png"
+            if len(output_images) == 1:
+                image_path = f"{response_id}.{file_extension}"
+                output_images[0].save(image_path)
+                output_image_paths.append(image_path)
+            elif len(output_images) > 1:
+                for idx, img in enumerate(output_images):
+                    image_path = f"{response_id}-{idx}.{file_extension}"
+                    img.save(image_path)
+                    output_image_paths.append(image_path)
 
-        return ImageGen(texts=out_texts, images=out_imgs, image_paths=out_img_paths)
+        return ImageGen(
+            texts=output_texts, images=output_images, image_paths=output_image_paths
+        )
 
-    def generate_n(self, n: int, **args):
-        img = self.generate(n=1, **args)
-        for _ in range(n - 1):
-            img += self.generate(n=1, **args)
-        return img
+    def _generate_multiple(self, n: int, **kwargs) -> "ImageGen":
+        """Helper to generate multiple images by accumulating results."""
+        result = None
+        for _ in range(n):
+            gen_result = self.generate(n=1, **kwargs)
+            if result is None:
+                result = gen_result
+            else:
+                result += gen_result
+        return result
 
 
 @dataclass
@@ -121,22 +127,21 @@ class ImageGen:
     image_paths: List[str] = field(default_factory=list)
 
     @property
-    def image(self):
+    def image(self) -> Optional[Image.Image]:
         return self.images[0] if self.images else None
 
     @property
-    def image_path(self):
+    def image_path(self) -> Optional[str]:
         return self.image_paths[0] if self.image_paths else None
 
     @property
-    def text(self):
+    def text(self) -> Optional[str]:
         return self.texts[0] if self.texts else None
 
-    def __add__(self, other):
+    def __add__(self, other: "ImageGen") -> "ImageGen":
         if isinstance(other, ImageGen):
             return ImageGen(
                 images=self.images + other.images,
                 image_paths=self.image_paths + other.image_paths,
             )
-        else:
-            raise TypeError("Unsupported operand type(s) for +")
+        raise TypeError("Can only add ImageGen instances.")

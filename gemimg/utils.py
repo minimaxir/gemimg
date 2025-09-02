@@ -1,64 +1,78 @@
 import base64
-import io
+from io import BytesIO
+from typing import Union
 
 from PIL import Image
 
 
-def resize_image(img, max_size=768):
+def resize_image(img: Image.Image, max_size: int = 768) -> Image.Image:
     """
-    Resize an image so that its maximum dimension (width or height) is max_size
+    Resize an image so that its maximum dimension (width or height) is `max_size`
     while maintaining the aspect ratio.
+
+    Args:
+        img: The PIL Image to resize.
+        max_size: The maximum size for the larger dimension.
+
+    Returns:
+        The resized PIL Image.
     """
-
-    # Get current dimensions
     width, height = img.size
-
-    # Calculate the scaling factor
     if width > height:
-        # Width is the larger dimension
         scale_factor = max_size / width
     else:
-        # Height is the larger dimension
         scale_factor = max_size / height
 
-    # Calculate new dimensions
     new_width = int(width * scale_factor)
     new_height = int(height * scale_factor)
-
-    # Resize the image
-    resized_img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-
-    # resized_img.save("test.png")
-    return resized_img
+    return img.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
 
-def img_to_b64(img, resize=True):
+def img_to_b64(img: Union[str, Image.Image], resize: bool = True) -> str:
     """
-    Convert an input image (or path to an image) to base64.
+    Convert an input image (or path to an image) to a base64-encoded string.
+
+    Args:
+        img: The image or path to the image.
+        resize: Whether to resize the image before encoding.
+
+    Returns:
+        The base64-encoded string of the image.
     """
     if isinstance(img, str):
         img = Image.open(img)
     if resize:
         img = resize_image(img)
 
-    buffered = io.BytesIO()
-    img.save(buffered, format="WEBP")
-    img_base64 = base64.b64encode(buffered.getvalue())
-    img_base64_str = img_base64.decode("utf-8")
-    return img_base64_str
+    buffer = BytesIO()
+    img.save(buffer, format="WEBP")
+    img_base64 = base64.b64encode(buffer.getvalue())
+    return img_base64.decode("utf-8")
 
 
-def b64_to_img(img_b64: str):
+def b64_to_img(img_b64: str) -> Image.Image:
     """
-    Convert a base64 encoding of an image into a PIL Image object.
+    Convert a base64-encoded image string into a PIL Image object.
+
+    Args:
+        img_b64: The base64-encoded image string.
+
+    Returns:
+        The decoded PIL Image.
     """
-    b64_bytes = io.BytesIO(base64.decodebytes(bytes(img_b64, "utf-8")))
-    return Image.open(b64_bytes)
+    img_bytes = base64.decodebytes(img_b64.encode("utf-8"))
+    buffer = BytesIO(img_bytes)
+    return Image.open(buffer)
 
 
-def img_b64_part(img_b64):
+def img_b64_part(img_b64: str) -> dict:
     """
-    Part formatting for a base64 encoded image to the Gemini API.
+    Create the part formatting for a base64-encoded image for the Gemini API.
+
+    Args:
+        img_b64: The base64-encoded image string.
+
+    Returns:
+        A dictionary representing the API part.
     """
-    part = {"inline_data": {"mime_type": "image/webp", "data": img_b64}}
-    return part
+    return {"inline_data": {"mime_type": "image/webp", "data": img_b64}}

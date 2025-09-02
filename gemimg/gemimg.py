@@ -27,6 +27,7 @@ class GemImg:
         resize_inputs: bool = True,
         save: bool = True,
         temperature: float = 1.0,
+        webp: bool = False,
     ):
         assert prompt or imgs, "Need `prompt` or `imgs` to generate."
         parts = []
@@ -73,6 +74,7 @@ class GemImg:
 
         out_texts = []
         out_imgs = []
+        out_img_paths = []
 
         # Gemini's API returns both text and image data in parts.
         # Multiple image generations are possible.
@@ -84,23 +86,33 @@ class GemImg:
 
         if save:
             response_id = r_json["responseId"]
+            out_type = ".webp" if webp else ".png"
             if len(out_imgs) == 1:
-                out_imgs[0].save(f"{response_id}.png")
+                out_img_path = f"{response_id}.{out_type}"
+                out_imgs[0].save(out_img_path)
+                out_img_paths.append(out_img_path)
             elif len(out_imgs) > 1:
                 for i, img in enumerate(out_imgs):
-                    img.save(f"{response_id}-{i}.png")
+                    out_img_path = f"{response_id}-{i}.{out_type}"
+                    img.save(out_img_path)
+                    out_img_paths.append(out_img_path)
 
-        return ImageGen(texts=out_texts, images=out_imgs)
+        return ImageGen(texts=out_texts, images=out_imgs, image_paths=out_img_paths)
 
 
 @dataclass
 class ImageGen:
     texts: List[str] = field(default_factory=list)
     images: List[Image.Image] = field(default_factory=list)
+    image_paths: List[str] = field(default_factory=list)
 
     @property
     def image(self):
         return self.images[0] if self.images else None
+
+    @property
+    def image_path(self):
+        return self.image_paths[0] if self.image_paths else None
 
     @property
     def text(self):

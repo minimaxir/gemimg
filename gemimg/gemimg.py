@@ -18,7 +18,10 @@ class GemImg:
     model: str = "gemini-2.5-flash-image-preview"
 
     def __post_init__(self):
-        assert self.api_key, "GEMINI_API_KEY is not provided or defined in .env."
+        if not self.api_key:
+            raise ValueError(
+                "GEMINI_API_KEY is required. Pass it as `api_key`, set it as an environment variable or in .env file."
+            )
 
     def generate(
         self,
@@ -30,12 +33,14 @@ class GemImg:
         webp: bool = False,
         n: int = 1,
     ) -> Optional["ImageGen"]:
-        assert prompt or imgs, "Need `prompt` or `imgs` to generate."
+        if not prompt and not imgs:
+            raise ValueError("Either 'prompt' or 'imgs' must be provided")
 
         if n > 1:
-            assert temperature != 0.0, (
-                "Generating multiple images at temperature = 0.0 is redundant."
-            )
+            if temperature == 0:
+                raise ValueError(
+                    "Generating multiple images at temperature = 0.0 is redundant."
+                )
             # Exclude 'self' from locals to avoid conflicts when passing as kwargs
             kwargs = {k: v for k, v in locals().items() if k != "self"}
             return self._generate_multiple(**kwargs)
@@ -67,6 +72,9 @@ class GemImg:
             )
         except httpx.exceptions.Timeout:
             print("Request Timeout")
+            return None
+        except httpx.HTTPStatusError as e:
+            print(f"HTTP error occurred: {e}")
             return None
 
         response_data = response.json()
@@ -110,6 +118,7 @@ class GemImg:
 
     def _generate_multiple(self, n: int, **kwargs) -> "ImageGen":
         """Helper to generate multiple images by accumulating results."""
+        n = kwargs.pop("n")
         result = None
         for _ in range(n):
             gen_result = self.generate(n=1, **kwargs)

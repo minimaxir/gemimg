@@ -1,5 +1,5 @@
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Union
 
 import httpx
@@ -12,9 +12,9 @@ load_dotenv()
 
 
 @dataclass
-class gemimg:
-    api_key: str = os.getenv("GEMINI_API_KEY")
-    client: httpx.Client = httpx.Client()
+class GemImg:
+    api_key: str = field(default_factory=lambda: os.getenv("GEMINI_API_KEY"))
+    client: httpx.Client = field(default_factory=httpx.Client)
     model: str = "gemini-2.5-flash-image"
 
     def __post_init__(self):
@@ -23,7 +23,7 @@ class gemimg:
     def generate(
         self,
         prompt: str = None,
-        imgs: Union[str, Image, List[str], List[Image]] = None,
+        imgs: Union[str, Image.Image, List[str], List[Image.Image]] = None,
         resize_inputs: bool = True,
         save: bool = True,
         temperature: float = 1.0,
@@ -33,7 +33,7 @@ class gemimg:
 
         if imgs:
             # if user doesn't input a list
-            if isinstance(imgs, str) or isinstance(imgs, Image):
+            if isinstance(imgs, str) or isinstance(imgs, Image.Image):
                 imgs = [imgs]
 
             img_b64s = [img_to_b64(x, resize_inputs) for x in imgs]
@@ -99,8 +99,8 @@ class gemimg:
 
 @dataclass
 class ImageGen:
-    texts: List[str]
-    images: List[Image]
+    texts: List[str] = field(default_factory=list)
+    images: List[Image.Image] = field(default_factory=list)
 
     @property
     def image(self):

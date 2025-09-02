@@ -13,8 +13,10 @@ load_dotenv()
 
 @dataclass
 class GemImg:
-    api_key: str = field(default_factory=lambda: os.getenv("GEMINI_API_KEY"))
-    client: httpx.Client = field(default_factory=httpx.Client)
+    api_key: str = field(
+        default_factory=lambda: os.getenv("GEMINI_API_KEY"), repr=False
+    )
+    client: httpx.Client = field(default_factory=httpx.Client, repr=False)
     model: str = "gemini-2.5-flash-image"
 
     def __post_init__(self):
@@ -37,10 +39,10 @@ class GemImg:
                 imgs = [imgs]
 
             img_b64s = [img_to_b64(x, resize_inputs) for x in imgs]
-            parts.append(img_b64_part(x) for x in img_b64s)
+            parts.append([img_b64_part(x) for x in img_b64s])
 
         if prompt:
-            parts.append([{"text": prompt.strip()}])
+            parts.append({"text": prompt.strip()})
 
         query_params = {
             "generationConfig": {
@@ -108,4 +110,4 @@ class ImageGen:
 
     @property
     def text(self):
-        return self.text[0] if self.texts else None
+        return self.texts[0] if self.texts else None

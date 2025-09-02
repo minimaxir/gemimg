@@ -28,8 +28,16 @@ class GemImg:
         save: bool = True,
         temperature: float = 1.0,
         webp: bool = False,
+        n: int = 1,
     ):
         assert prompt or imgs, "Need `prompt` or `imgs` to generate."
+
+        if n > 1:
+            assert temperature != 0.0, (
+                "Generating multiple images at temperature = 0.0 is redundant."
+            )
+            return self.generate_n(n=n, **locals())
+
         parts = []
 
         if imgs:
@@ -86,7 +94,7 @@ class GemImg:
 
         if save:
             response_id = r_json["responseId"]
-            out_type = ".webp" if webp else ".png"
+            out_type = "webp" if webp else "png"
             if len(out_imgs) == 1:
                 out_img_path = f"{response_id}.{out_type}"
                 out_imgs[0].save(out_img_path)
@@ -98,6 +106,12 @@ class GemImg:
                     out_img_paths.append(out_img_path)
 
         return ImageGen(texts=out_texts, images=out_imgs, image_paths=out_img_paths)
+
+    def generate_n(self, n: int, **args):
+        img = self.generate(n=1, **args)
+        for _ in range(n - 1):
+            img += self.generate(n=1, **args)
+        return img
 
 
 @dataclass
@@ -117,3 +131,12 @@ class ImageGen:
     @property
     def text(self):
         return self.texts[0] if self.texts else None
+
+    def __add__(self, other):
+        if isinstance(other, ImageGen):
+            return ImageGen(
+                images=self.images + other.images,
+                image_paths=self.image_paths + other.image_paths,
+            )
+        else:
+            raise TypeError("Unsupported operand type(s) for +")

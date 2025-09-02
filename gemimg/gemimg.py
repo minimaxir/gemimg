@@ -13,9 +13,7 @@ load_dotenv()
 
 @dataclass
 class GemImg:
-    api_key: str = field(
-        default_factory=lambda: os.getenv("GEMINI_API_KEY"), repr=False
-    )
+    api_key: str = field(default=os.getenv("GEMINI_API_KEY"), repr=False)
     client: httpx.Client = field(default_factory=httpx.Client, repr=False)
     model: str = "gemini-2.5-flash-image-preview"
 
@@ -87,10 +85,10 @@ class GemImg:
         if save:
             response_id = r_json["responseId"]
             if len(out_imgs) == 1:
-                out_imgs[0].save(f"{response_id}.webp", quality=75)
+                out_imgs[0].save(f"{response_id}.png")
             elif len(out_imgs) > 1:
                 for i, img in enumerate(out_imgs):
-                    img.save(f"{response_id}-{i}.webp", quality=75)
+                    img.save(f"{response_id}-{i}.png")
 
         return ImageGen(texts=out_texts, images=out_imgs)
 

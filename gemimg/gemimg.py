@@ -78,6 +78,7 @@ class GemImg:
             return None
 
         response_data = response.json()
+        usage_metadata = response_data["usageMetadata"]
 
         # Check for prohibited content
         candidates = response_data["candidates"][0]
@@ -113,7 +114,15 @@ class GemImg:
                     output_image_paths.append(image_path)
 
         return ImageGen(
-            texts=output_texts, images=output_images, image_paths=output_image_paths
+            texts=output_texts,
+            images=output_images,
+            image_paths=output_image_paths,
+            usages=[
+                Usage(
+                    prompt_tokens=usage_metadata["promptTokenCount"],
+                    completion_tokens=usage_metadata["candidatesTokenCount"],
+                )
+            ],
         )
 
     def _generate_multiple(self, n: int, **kwargs) -> "ImageGen":
@@ -130,10 +139,21 @@ class GemImg:
 
 
 @dataclass
+class Usage:
+    prompt_tokens: int
+    completion_tokens: int
+
+    @property
+    def total_tokens(self) -> int:
+        return self.prompt_tokens + self.completion_tokens
+
+
+@dataclass
 class ImageGen:
     texts: List[str] = field(default_factory=list)
     images: List[Image.Image] = field(default_factory=list)
     image_paths: List[str] = field(default_factory=list)
+    usages: List[Usage] = field(default_factory=list)
 
     @property
     def image(self) -> Optional[Image.Image]:
@@ -147,10 +167,15 @@ class ImageGen:
     def text(self) -> Optional[str]:
         return self.texts[0] if self.texts else None
 
+    @property
+    def usage(self) -> Optional[Usage]:
+        return self.usages[0] if self.usages else None
+
     def __add__(self, other: "ImageGen") -> "ImageGen":
         if isinstance(other, ImageGen):
             return ImageGen(
                 images=self.images + other.images,
                 image_paths=self.image_paths + other.image_paths,
+                usages=self.usages + other.usages,
             )
         raise TypeError("Can only add ImageGen instances.")

@@ -1,0 +1,56 @@
+{
+  "name": "Athena 'Code Weaver' Papadakis",
+  "gender": "female",
+  "ethnicity": "Greek",
+  "age": 28,
+  "background": "Born and raised in Thessaloniki, Athena was a prodigy, spending her childhood devouring ancient Greek texts by day and cracking complex algorithms by night. Her family owned a small, traditional bakery, and she often integrated her love for intricate patterns from baklava recipes into her coding logic. She became a renowned 'ethical' hacker, known for exposing corruption while leaving her mark with lines of ancient Greek poetry hidden in the code. Her methods are as precise and layered as the historical architecture surrounding her home.",
+  "personality": "Brilliant and fiercely independent, with a dry, witty sense of humor. She is fiercely loyal to her friends and protective of her heritage, often using classical Greek proverbs in modern contexts. She can be introverted, but when passionate about a topic, her words flow with the captivating rhythm of an ancient orator.",
+  "motivation": "To protect digital freedom and privacy, expose modern corruption with the wisdom of the ancients, and honor her Greek heritage by demonstrating its enduring relevance in the digital age. She also seeks to preserve the 'human' element in an increasingly automated world, finding beauty in the imperfections of human-crafted code.",
+  "notable_features": [
+    "Always wears a subtle silver olive branch hairpin",
+    "Has a small, almost invisible, micro-LED array integrated into her left temple that glows faintly when she's deep in thought or actively coding",
+    "Carries a custom-built tablet disguised as a leather-bound journal"
+  ],
+  "head": {
+    "eye_color": "hazel",
+    "facial_scars": null,
+    "facial_accessories": [
+      "sleek, modern glasses with subtle Greek key pattern on the arms",
+      "small silver stud piercing on her left nostril"
+    ],
+    "hair_color": "dark brown",
+    "hair_style": "long, thick, wavy hair often pulled into a practical yet elegant braid, sometimes adorned with small, intricately woven fabric ties resembling traditional Greek textiles"
+  },
+  "body": {
+    "size": "slim",
+    "chest_size": "medium",
+    "clothing_upper": "A tailored, comfortable, dark-colored long-sleeve shirt made of breathable tech fabric, often with a subtle, abstract print reminiscent of ancient Greek mosaics, layered under an open-front, lightweight, woven cardigan.",
+    "clothing_lower": "High-waisted, dark cargo pants with numerous discreet, reinforced pockets designed to hold various tech gadgets, often featuring subtle embroidered patterns near the cuffs.",
+    "belt": "A minimalist, dark leather belt with a buckle shaped like a stylized owl (symbol of Athena), subtly integrated with a hidden compartment for a USB drive.",
+    "body_modifications": [
+      "Small, intricate tattoo of the Parthenon silhouette on her right shoulder blade, composed of binary code lines"
+    ]
+  },
+  "arms_hands": {
+    "arm_size": "slim",
+    "hand_accessories": [
+      "A delicate silver ring on her right index finger, designed to look like a tiny circuit board",
+      "Fingerless gloves made of a durable, slightly reflective material, providing grip and subtle data display on the knuckles"
+    ],
+    "arm_clothing": "Sleeves are often rolled up to just below the elbow, revealing a small, intricate 'Meander' (Greek key) pattern embroidered along the inner seam."
+  },
+  "legs": {
+    "leg_size": "slim",
+    "leg_clothing": "The cargo pants tuck neatly into slightly calf-high, custom-designed tech boots.",
+    "shoes": "Durable, ankle-high tech boots with reinforced toes and a flexible, grippy sole, designed for both comfort and stealth, incorporating subtle visual cues from ancient Greek sandal designs.",
+    "leg_accessories": [
+      "A small, almost invisible, leg pouch strapped to her right thigh, containing micro-tools and emergency power banks."
+    ]
+  },
+  "equipment": [
+    "Custom-built ultrabook with an illuminated Greek keyboard",
+    "Set of miniature lockpicking tools disguised as hairpins",
+    "Several encrypted USB drives, each labeled with a different Greek deity's symbol",
+    "A small, portable, solar-powered charger resembling a traditional Greek worry bead string"
+  ]
+}

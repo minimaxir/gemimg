@@ -1,15 +1,10 @@
-# simpleaichat
+# gemimg
 
-simpleaichat is a Python package for easily interfacing with chat apps like ChatGPT and GPT-4 with robust features and minimal code complexity. This tool has many features optimized for working with ChatGPT as fast and as cheap as possible, but still much more capable of modern AI tricks than most implementations:
+gemimg is a lightweight (<400 LoC) Python package for easily interfacing with Google's Gemini API and the Gemini 2.5 Flash Image (a.k.a. Nano Banana) with robust features. This tool allows for:
 
-- Create and run chats with only a few lines of code!
+- Create images with only a few lines of code!
+- Handles image I/O, including multiimage I/O and encoding/decoding.
 - Optimized workflows which minimize the amount of tokens used, reducing costs and latency.
-- Run multiple independent chats at once.
-- Minimal codebase: no code dives to figure out what's going on under the hood needed!
-- Chat streaming responses and the ability to use tools.
-- Async support, including for streaming and tools.
-- Ability to create more complex yet clear workflows if needed, such as Agents. (Demo soon!)
-- Coming soon: more chat model support (PaLM, Claude)!
 
 Here's some fun, hackable examples on how simpleaichat works:
 
@@ -51,15 +46,22 @@ gen = g.generate("A kitten with prominent purple-and-green fur.")
 
 The generated image is stored as a `PIL.Image` object and can be retrieved for example with `gen.image` for passing again to Gemini 2.5 Flash Image for further edits. By default, `generate` also automatically saves the generated image as a PNG file in the current working directory. You can save a WEBP instead by specifying `webp=True`, change the save directory by specifying `save_dir`, or disable the saving behavior with `save=False`.
 
+## Gemini 2.5 Flash Image Model Limitations
+
+- Gemini 2.5 Flash Image does not support aspect ratio control, despite developer examples implying such. Prompt engineering the text to generate in a specific ratio does _not_ have any effect. The only method to control the aspect ratio is to provide it as an input image, as the generated image tends to follow the same aspect ration.
+- Gemini 2.5 Flash Image cannot do style transfer, e.g. `turn me into Studio Ghibli`, and seems to ignore commands that try to do so. Google's developer documentation example of style transfer unintentionally demonstrates this by incorrectly applying the specified style.
+- Gemini 2.5 Flash Image does have moderation in the form of both prompt moderation and post-generation image moderation, although it's more leient than typical for Google's services. In the former case, the `gen.text` will indicate the refusal reason. In the latter case, a `PROHIBITED_CONTENT` error will be thrown.
+- Gemini 2.5 Flash Image is unsurprisingly bad at free-form text generation, both in terms of text fidelity and frequency of typos. However, a workaround is to provide the rendered text as an input image, and ask the model to composite it with another image.
+
 ## Miscellaneous Notes
 
-- gemimg is intended to be bespoke and very tightly scoped. **Support for other image generation APIs and/or endpoints will not be supported**, unless they follow the identical APIs (i.e. a hypothetical `gemini-3-flash-image`). As this repository is designed to be future-proofed, there likely will not be many updates other than compatability fixes.
--
+- gemimg is intended to be bespoke and very tightly scoped. **Support for other image generation APIs and/or endpoints will not be supported**, unless they follow the identical APIs (i.e. a hypothetical `gemini-3-flash-image`). As this repository is designed to be future-proof, there likely will not be many updates other than compatability fixes.
+- gemimg intentionally does not support true multiturn conversations within a single thread as a) the technical lift for doing so would no longer make this package lightweight and b) it is unclear if it's actually better for the typical use cases.
 
 ## Roadmap
 
 - Async support (for parallel calls and [FastAPI](https://fastapi.tiangolo.com) support)
-- Additing additional parameters if the Gemini API supports them.
+- Additional model parameters if the Gemini API supports them.
 
 ## Maintainer/Creator
 

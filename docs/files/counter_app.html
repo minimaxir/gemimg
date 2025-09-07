@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Counter Application</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+      .container {
+        display: flex;
+        height: 100vh;
+      }
+      .sidebar {
+        flex: 1;
+        background-color: #333;
+        color: white;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      .body {
+        flex: 2;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #fff;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      .counter-display {
+        font-size: 48px;
+        margin-bottom: 20px;
+      }
+      .counter-controls {
+        display: flex;
+        gap: 10px;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 18px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        background-color: #007bff;
+        color: white;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      #decrement,
+      #reset {
+        background-color: #dc3545;
+      }
+      #decrement:hover,
+      #reset:hover {
+        background-color: #c82333;
+      }
+      .sidebar h2 {
+        margin-top: 0;
+      }
+      .sidebar p {
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="sidebar">
+        <h2>Counter Info</h2>
+        <p>
+          This is a simple counter application. Use the buttons in the main area
+          to increment, decrement, or reset the count.
+        </p>
+        <p>Current count: <span id="sidebar-count">0</span></p>
+      </div>
+      <div class="body">
+        <div class="counter-display">Counter: <span id="count">0</span></div>
+        <div class="counter-controls">
+          <button id="decrement">-</button>
+          <button id="increment">+</button>
+          <button id="reset">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let count = 0;
+      const countElement = document.getElementById("count");
+      const sidebarCountElement = document.getElementById("sidebar-count");
+      const incrementButton = document.getElementById("increment");
+      const decrementButton = document.getElementById("decrement");
+      const resetButton = document.getElementById("reset");
+
+      function updateDisplay() {
+        countElement.textContent = count;
+        sidebarCountElement.textContent = count;
+      }
+
+      incrementButton.addEventListener("click", () => {
+        count++;
+        updateDisplay();
+      });
+
+      decrementButton.addEventListener("click", () => {
+        count--;
+        updateDisplay();
+      });
+
+      resetButton.addEventListener("click", () => {
+        count = 0;
+        updateDisplay();
+      });
+
+      // Initialize display
+      updateDisplay();
+    </script>
+  </body>
+</html>

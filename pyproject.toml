@@ -7,9 +7,9 @@ name = "gemimg"
 version = "0.1.0"
 description = "Lightweight wrapper for generating and editing images from Gemini 2.5 Flash Image."
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
 authors = [{ name = "Max Woolf", email = "max@minimaxir.com" }]
-keywords = ["chatgpt", "openai", "text generation", "ai"]
+keywords = ["gemini", "nano-banana", "image generation", "ai"]
 classifiers = []
 requires-python = ">=3.10"
 dependencies = [

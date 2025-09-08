@@ -72,7 +72,7 @@ gen_edit = g.generate(edit_prompt, gen.image)
 
 ![](/docs/notebooks/gens/Yfu8aIfpHufVz7IP4_WEsAc@0.5x.webp)
 
-You can also input two (or more!) images/image paths to do things like combine images or put an object from Image A into Image B without having to train a [LoRA](https://huggingface.co/docs/diffusers/training/lora). For example, take this selfie of myself, and a fantasy lava pool generated with gemimg:
+You can also input two (or more!) images/image paths to do things like combine images or put an object from Image A into Image B without having to train a [LoRA](https://huggingface.co/docs/diffusers/training/lora). For example, take this selfie of myself, and a fantasy lava pool generated with gemimg that beckons me to claim its power:
 
 ![](/docs/notebooks/gens/composite_max.webp)
 

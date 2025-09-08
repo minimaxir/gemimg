@@ -3,6 +3,7 @@
 gemimg is a lightweight (<400 LoC) Python package for easily interfacing with Google's Gemini API and the Gemini 2.5 Flash Image (a.k.a. Nano Banana) with robust features. This tool allows for:
 
 - Create images with only a few lines of code!
+- Minimal dependencies, and does not use Google's Client SDK.
 - Handles image I/O, including multi-image I/O and image encoding/decoding.
 - Utilities for common use cases, such as saving, resizing, and compositing multiple images.
 
@@ -109,7 +110,7 @@ gen = g.generate(prompt, "pose_control_base.png")
 
 [Jupyter Notebook which randomizes the character order](docs/notebooks/pose_control.ipynb).
 
-This is just the tip of the iceberg of things you can do with Gemini 2.5 Flash Image (a blog post is coming shortly). And that's not even getting into JSON prompting of the model, which can offer _extremely_ granular control of the generation. ([Jupyter Notebook](docs/notebooks/character_json.ipynb))
+This is just the tip of the iceberg of things you can do with Gemini 2.5 Flash Image (a blog post is coming shortly). By leveraging Gemini 2.5 Flash Image's long context window, you can even give it HTML and have it render a webpage ([Jupyter Notebook](/docs/notebooks/html_webpage.ipynb)). And that's not even getting into JSON prompting of the model, which can offer _extremely_ granular control of the generation. ([Jupyter Notebook](docs/notebooks/character_json.ipynb))
 
 ## Gemini 2.5 Flash Image Model Limitations
 

@@ -27,7 +27,7 @@ uv pip install gemimg
 
 ## Quick, Fun Demo
 
-You can demo chat-apps very quickly with simpleaichat! First, you will need to get an OpenAI API key, and then with one line of code:
+You can demo chat-apps very quickly with simpleaichat! First, you will need to get a Gemini API key (from a project which has billing information)L
 
 ```py3
 from gemimg import GemImg
@@ -37,10 +37,9 @@ g = GemImg(api_key="AI...")
 
 You can also pass the API key by storing it in an `.env` file with a `GEMINI_API_KEY` field in the working directory (recommended), or by setting the environment variable of `GEMINI_API_KEY` directly to the API key.
 
-Now, you can generate with a simple text prompt!
+Now, you can generate images with a simple text prompt!
 
 ```py3
-# assuming API key loaded via methods above
 gen = g.generate("A kitten with prominent purple-and-green fur.")
 ```
 

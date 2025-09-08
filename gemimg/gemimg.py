@@ -29,6 +29,7 @@ class GemImg:
         imgs: Optional[Union[str, Image.Image, List[str], List[Image.Image]]] = None,
         resize_inputs: bool = True,
         save: bool = True,
+        save_dir: str = "",
         temperature: float = 1.0,
         webp: bool = False,
         n: int = 1,
@@ -105,12 +106,12 @@ class GemImg:
             file_extension = "webp" if webp else "png"
             if len(output_images) == 1:
                 image_path = f"{response_id}.{file_extension}"
-                output_images[0].save(image_path)
+                output_images[0].save(os.path.join(save_dir, image_path))
                 output_image_paths.append(image_path)
             elif len(output_images) > 1:
                 for idx, img in enumerate(output_images):
                     image_path = f"{response_id}-{idx}.{file_extension}"
-                    img.save(image_path)
+                    img.save(os.path.join(save_dir, image_path))
                     output_image_paths.append(image_path)
 
         return ImageGen(

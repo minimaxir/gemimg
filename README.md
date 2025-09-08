@@ -69,9 +69,9 @@ gen_edit = g.generate(edit_prompt, gen.image)
 
 ![](/docs/notebooks/gens/Yfu8aIfpHufVz7IP4_WEsAc@0.5x.webp)
 
-You can also input two (or more!) images/image paths to do things like combine images or put the object from Image A into Image B.
+You can also input two (or more!) images/image paths to do things like combine images or put the object from Image A into Image B without having to train a [LoRA](https://huggingface.co/docs/diffusers/training/lora).
 
-You can also guide the generation with an input image, similar to [ControlNet](https://github.com/lllyasviel/ControlNet) implementations. As an example, given this input drawing and prompt:
+You can also guide the generation with an input image, similar to [ControlNet](https://github.com/lllyasviel/ControlNet) implementations. Giving Gemini 2.5 Flash Image this input drawing and prompt:
 
 ![](docs/files/pose_control_base.png)
 
@@ -93,12 +93,15 @@ gen = g.generate(prompt, "pose_control_base.png")
 
 ![](docs/notebooks/gens/qEC-aPT-Joahz7IP07Lo4Qw.webp)
 
-This is just the tip of the iceberg of things you can do with Gemini 2.5 Flash Image (a blog post is coming shortly). And that's not even getting into JSON prompting of the model, which can offer _extremely_ granular control of the generation. (Jupyter Notebbok)
+[Jupyter Notebook which randomizes the character order](docs/notebooks/pose_control.ipynb).
+
+This is just the tip of the iceberg of things you can do with Gemini 2.5 Flash Image (a blog post is coming shortly). And that's not even getting into JSON prompting of the model, which can offer _extremely_ granular control of the generation. ([Jupyter Notebook](docs/notebooks/character_json.ipynb))
 
 ## Gemini 2.5 Flash Image Model Limitations
 
 - Gemini 2.5 Flash Image does not support aspect ratio control, despite developer examples implying such. Prompt engineering the text to generate in a specific ratio does _not_ have any effect. The only method to control the aspect ratio is to provide it as an input image, as the generated image tends to follow the same aspect ration.
-- Gemini 2.5 Flash Image cannot do style transfer, e.g. `turn me into Studio Ghibli`, and seems to ignore commands that try to do so. Google's developer documentation example of style transfer unintentionally demonstrates this by incorrectly applying the specified style.
+- Gemini 2.5 Flash Image cannot do style transfer, e.g. `turn me into Studio Ghibli`, and seems to ignore commands that try to do so. Google's developer documentation example of style transfer unintentionally demonstrates this by incorrectly applying the specified style. The only way to shift the style is to generate a completely new image.
+  - This also causes issues the "put subject from Image A into Image B" use case if either are a different style.
 - Gemini 2.5 Flash Image does have moderation in the form of both prompt moderation and post-generation image moderation, although it's more leient than typical for Google's services. In the former case, the `gen.text` will indicate the refusal reason. In the latter case, a `PROHIBITED_CONTENT` error will be thrown.
 - Gemini 2.5 Flash Image is unsurprisingly bad at free-form text generation, both in terms of text fidelity and frequency of typos. However, a workaround is to provide the rendered text as an input image, and ask the model to composite it with another image.
 - Yes, both a) LLM-style prompt engineering with emphasis on specific words with Markdown-formatting and b) old-school AI image style quality enhancements such as `award-winning` and `DSLR camera` are both _extremely_ effective with Gemini 2.5 Flash Image, due to its text encoder and likely training data set which can now accurately discriminate such impacts. I've tried generations both with and without those tricks and the tricks definitely have an impact.

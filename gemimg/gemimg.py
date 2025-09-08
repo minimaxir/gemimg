@@ -120,8 +120,8 @@ class GemImg:
             image_paths=output_image_paths,
             usages=[
                 Usage(
-                    prompt_tokens=usage_metadata["promptTokenCount"],
-                    completion_tokens=usage_metadata["candidatesTokenCount"],
+                    prompt_tokens=usage_metadata.get("promptTokenCount", -1),
+                    completion_tokens=usage_metadata.get("candidatesTokenCount", -1),
                 )
             ],
         )

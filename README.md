@@ -39,6 +39,8 @@ Now, you can generate images with a simple text prompt!
 gen = g.generate("A kitten with prominent purple-and-green fur.")
 ```
 
+![](/docs/notebooks/gens/JP28aM2cFOODqtsPi7_J8A0@0.5x.webp)
+
 The generated image is stored as a `PIL.Image` object and can be retrieved for example with `gen.image` for passing again to Gemini 2.5 Flash Image for further edits. By default, `generate()` also automatically saves the generated image as a PNG file in the current working directory. You can save a WEBP instead by specifying `webp=True`, change the save directory by specifying `save_dir`, or disable the saving behavior with `save=False`.
 
 Due to Gemini 2.5 Flash Image's multimodal text encoder, you can create nuanced prompts including details and positioning that are not as effective in Flux or Midjourney:

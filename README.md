@@ -69,7 +69,21 @@ gen_edit = g.generate(edit_prompt, gen.image)
 
 ![](/docs/notebooks/gens/Yfu8aIfpHufVz7IP4_WEsAc@0.5x.webp)
 
-You can also input two (or more!) images/image paths to do things like combine images or put the object from Image A into Image B without having to train a [LoRA](https://huggingface.co/docs/diffusers/training/lora).
+You can also input two (or more!) images/image paths to do things like combine images or put the object from Image A into Image B without having to train a [LoRA](https://huggingface.co/docs/diffusers/training/lora). For example, take this selfie of myself, and a fantasy lava pool generated with gemimg:
+
+![](/docs/notebooks/gens/composite_max.webp)
+
+```py3
+edit_prompt = """
+Make the person in the first image stand waist-deep in the lava of the second image. The person's arms are raise high in cheer.
+
+The lighting of the person must match that of the second image.
+"""
+
+gen = g.generate(edit_prompt, ["max_woolf.webp", gen_volcano.image])
+```
+
+![](/docs/notebooks/gens/6HC-aLCQKc3Vz7IP9eeDyAI@0.5x.webp)
 
 You can also guide the generation with an input image, similar to [ControlNet](https://github.com/lllyasviel/ControlNet) implementations. Giving Gemini 2.5 Flash Image this input drawing and prompt:
 
@@ -101,15 +115,16 @@ This is just the tip of the iceberg of things you can do with Gemini 2.5 Flash I
 
 - Gemini 2.5 Flash Image does not support aspect ratio control, despite developer examples implying such. Prompt engineering the text to generate in a specific ratio does _not_ have any effect. The only method to control the aspect ratio is to provide it as an input image, as the generated image tends to follow the same aspect ration.
 - Gemini 2.5 Flash Image cannot do style transfer, e.g. `turn me into Studio Ghibli`, and seems to ignore commands that try to do so. Google's developer documentation example of style transfer unintentionally demonstrates this by incorrectly applying the specified style. The only way to shift the style is to generate a completely new image.
-  - This also causes issues the "put subject from Image A into Image B" use case if either are a different style.
+  - This also causes issues with the "put subject from Image A into Image B" use case if either are a different style.
 - Gemini 2.5 Flash Image does have moderation in the form of both prompt moderation and post-generation image moderation, although it's more leient than typical for Google's services. In the former case, the `gen.text` will indicate the refusal reason. In the latter case, a `PROHIBITED_CONTENT` error will be thrown.
 - Gemini 2.5 Flash Image is unsurprisingly bad at free-form text generation, both in terms of text fidelity and frequency of typos. However, a workaround is to provide the rendered text as an input image, and ask the model to composite it with another image.
 - Yes, both a) LLM-style prompt engineering with emphasis on specific words with Markdown-formatting and b) old-school AI image style quality enhancements such as `award-winning` and `DSLR camera` are both _extremely_ effective with Gemini 2.5 Flash Image, due to its text encoder and likely training data set which can now accurately discriminate such impacts. I've tried generations both with and without those tricks and the tricks definitely have an impact.
 
 ## Miscellaneous Notes
 
-- gemimg is intended to be bespoke and very tightly scoped. **Support for other image generation APIs and/or endpoints will not be supported**, unless they follow the identical APIs (i.e. a hypothetical `gemini-3-flash-image`). As this repository is designed to be future-proof, there likely will not be many updates other than compatability fixes.
+- gemimg is intended to be bespoke and very tightly scoped. **Support for other image generation APIs and/or endpoints will not be supported**, unless they follow the identical APIs (i.e. a hypothetical `gemini-3-flash-image`). As this repository is designed to be future-proof, there likely will not be many updates other than bug/compatability fixes.
 - gemimg intentionally does not support true multiturn conversations within a single thread as a) the technical lift for doing so would no longer make this package lightweight and b) it is unclear if it's actually better for the typical use cases.
+- By default, input images to `generate()` are resized such that their max dimension is 768px while maintaining the aspect ratio. This is done a) as a sanity safeguard against providing a massive image and b) Gemini processes images in tiles of 768x768px, so this forces the input to be 1 tile which should lower costs and improve consistency. If you want to disable this behavior, set `resize_inputs=False`.
 - Do not question my example image prompts. I assure you, there is a specific reason or objective for every model input and prompt engineering trick. There is a method to my madness...although in this case I confess its more madness than method.
 
 ## Roadmap

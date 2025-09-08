@@ -3,15 +3,10 @@
 gemimg is a lightweight (<400 LoC) Python package for easily interfacing with Google's Gemini API and the Gemini 2.5 Flash Image (a.k.a. Nano Banana) with robust features. This tool allows for:
 
 - Create images with only a few lines of code!
-- Handles image I/O, including multiimage I/O and encoding/decoding.
-- Optimized workflows which minimize the amount of tokens used, reducing costs and latency.
+- Handles image I/O, including multi-image I/O and image encoding/decoding.
+- Utilities for common use cases, such as saving, resizing, and compositing multiple images.
 
-Here's some fun, hackable examples on how simpleaichat works:
-
-- Creating a [Python coding assistant](examples/notebooks/simpleaichat_coding.ipynb) without any unnecessary accompanying output, allowing 5x faster generation at 1/3rd the cost. ([Colab](https://colab.research.google.com/github/minimaxir/simpleaichat/blob/main/examples/notebooks/simpleaichat_coding.ipynb))
-- Allowing simpleaichat to [provide inline tips](examples/notebooks/chatgpt_inline_tips.ipynb) following ChatGPT usage guidelines. ([Colab](https://colab.research.google.com/github/minimaxir/simpleaichat/blob/main/examples/notebooks/chatgpt_inline_tips.ipynb))
-- Async interface for [conducting many chats](examples/notebooks/simpleaichat_async.ipynb) in the time it takes to receive one AI message. ([Colab](https://colab.research.google.com/github/minimaxir/simpleaichat/blob/main/examples/notebooks/simpleaichat_async.ipynb))
-- Create your own Tabletop RPG (TTRPG) setting and campaign by using [advanced structured data models](examples/notebooks/schema_ttrpg.ipynb). ([Colab](https://colab.research.google.com/github/minimaxir/simpleaichat/blob/main/examples/notebooks/schema_ttrpg.ipynb))
+Although Gemini 2.5 Flash Image can be used for free in Google AI Studio or Google Gemini, those interfaces place a visible watermark on their outputs and have generation limits. Using gemimg and the Gemini API directly, not only do you have more programmatic control over the generation.
 
 ## Installation
 
@@ -27,7 +22,7 @@ uv pip install gemimg
 
 ## Demo
 
-You can demo chat-apps very quickly with simpleaichat! First, you will need to get a Gemini API key (from a project which has billing information)L
+First, you will need to get a Gemini API key (from a project which has billing information), or a free applicable API key.
 
 ```py3
 from gemimg import GemImg
@@ -43,9 +38,9 @@ Now, you can generate images with a simple text prompt!
 gen = g.generate("A kitten with prominent purple-and-green fur.")
 ```
 
-The generated image is stored as a `PIL.Image` object and can be retrieved for example with `gen.image` for passing again to Gemini 2.5 Flash Image for further edits. By default, `generate` also automatically saves the generated image as a PNG file in the current working directory. You can save a WEBP instead by specifying `webp=True`, change the save directory by specifying `save_dir`, or disable the saving behavior with `save=False`.
+The generated image is stored as a `PIL.Image` object and can be retrieved for example with `gen.image` for passing again to Gemini 2.5 Flash Image for further edits. By default, `generate()` also automatically saves the generated image as a PNG file in the current working directory. You can save a WEBP instead by specifying `webp=True`, change the save directory by specifying `save_dir`, or disable the saving behavior with `save=False`.
 
-Due to Gemini 2.5 Flash Image's multimodal text encoder, you can create nuanced prompts including details and positioning that are not as effective Flux or Midjourney:
+Due to Gemini 2.5 Flash Image's multimodal text encoder, you can create nuanced prompts including details and positioning that are not as effective in Flux or Midjourney:
 
 ```py3
 prompt = """
@@ -57,7 +52,7 @@ gen = g.generate(prompt)
 
 ![](/docs/notebooks/gens/7fm8aJD0Lp6ymtkPpqvn0QU@0.5x.webp)
 
-Gemini 2.5 Flash Image allows you to make highly-nuanced edits to images. With gemimg, you can pass along the image you just generated very easily for editing.
+Gemini 2.5 Flash Image allows you to make highly-targeted edits to images. With gemimg, you can pass along the image you just generated very easily for editing.
 
 ```py3
 edit_prompt = """
@@ -80,7 +75,8 @@ You can also guide the generation with an input image, similar to [ControlNet](h
 
 ![](docs/files/pose_control_base.png)
 
-```txt
+```py3
+prompt = """
 Generate an image of characters playing a poker game sitting at a green felt table, directly facing the front. This new image MUST map ALL of the following characters to the poses and facial expressions represented by the specified colors of the provided image:
 - Green: Spongebob SquarePants
 - Red: Shadow the Hedgehog
@@ -90,9 +86,14 @@ Generate an image of characters playing a poker game sitting at a green felt tab
 - Yellow: Evangelion Unit-01 from "Neon Genesis Evangelion"
 
 The image is an award-winning highly-detailed painting, oil on oaken canvas. All characters MUST adhere to the oil on oaken canvas artistic style, even if this varies from their typical styles. All characters must be present individually in the image.
+"""
+
+gen = g.generate(prompt, "pose_control_base.png")
 ```
 
 ![](docs/notebooks/gens/qEC-aPT-Joahz7IP07Lo4Qw.webp)
+
+This is just the tip of the iceberg of things you can do with Gemini 2.5 Flash Image (a blog post is coming shortly). And that's not even getting into JSON prompting of the model, which can offer _extremely_ granular control of the generation. (Jupyter Notebbok)
 
 ## Gemini 2.5 Flash Image Model Limitations
 
@@ -100,12 +101,13 @@ The image is an award-winning highly-detailed painting, oil on oaken canvas. All
 - Gemini 2.5 Flash Image cannot do style transfer, e.g. `turn me into Studio Ghibli`, and seems to ignore commands that try to do so. Google's developer documentation example of style transfer unintentionally demonstrates this by incorrectly applying the specified style.
 - Gemini 2.5 Flash Image does have moderation in the form of both prompt moderation and post-generation image moderation, although it's more leient than typical for Google's services. In the former case, the `gen.text` will indicate the refusal reason. In the latter case, a `PROHIBITED_CONTENT` error will be thrown.
 - Gemini 2.5 Flash Image is unsurprisingly bad at free-form text generation, both in terms of text fidelity and frequency of typos. However, a workaround is to provide the rendered text as an input image, and ask the model to composite it with another image.
+- Yes, both a) LLM-style prompt engineering with emphasis on specific words with Markdown-formatting and b) old-school AI image style quality enhancements such as `award-winning` and `DSLR camera` are both _extremely_ effective with Gemini 2.5 Flash Image, due to its text encoder and likely training data set which can now accurately discriminate such impacts. I've tried generations both with and without those tricks and the tricks definitely have an impact.
 
 ## Miscellaneous Notes
 
 - gemimg is intended to be bespoke and very tightly scoped. **Support for other image generation APIs and/or endpoints will not be supported**, unless they follow the identical APIs (i.e. a hypothetical `gemini-3-flash-image`). As this repository is designed to be future-proof, there likely will not be many updates other than compatability fixes.
 - gemimg intentionally does not support true multiturn conversations within a single thread as a) the technical lift for doing so would no longer make this package lightweight and b) it is unclear if it's actually better for the typical use cases.
-- Do not question my example image prompts. I assure you, there is a specific reason or test for every model input and prompt engineering trick. There is a method to my madness, although in this case it may be more madness than method.
+- Do not question my example image prompts. I assure you, there is a specific reason or objective for every model input and prompt engineering trick. There is a method to my madness...although in this case I confess its more madness than method.
 
 ## Roadmap
 

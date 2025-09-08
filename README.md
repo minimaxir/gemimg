@@ -114,7 +114,7 @@ gen = g.generate(prompt, "pose_control_base.png")
 
 This is just the tip of the iceberg of things you can do with Gemini 2.5 Flash Image (a blog post is coming shortly). By leveraging Gemini 2.5 Flash Image's long context window, you can even give it HTML and have it render a webpage ([Jupyter Notebook](/docs/notebooks/html_webpage.ipynb)). And that's not even getting into JSON prompting of the model, which can offer _extremely_ granular control of the generation. ([Jupyter Notebook](docs/notebooks/character_json.ipynb))
 
-## Gemini 2.5 Flash Image Model Limitations
+## Gemini 2.5 Flash Image Model Notes
 
 - Gemini 2.5 Flash Image does not support aspect ratio control, despite developer examples implying such. Prompt engineering the text to generate in a specific ratio does _not_ have any effect. The only method to control the aspect ratio is to provide it as an input image, as the generated image tends to follow the same aspect ration.
 - Gemini 2.5 Flash Image cannot do style transfer, e.g. `turn me into Studio Ghibli`, and seems to ignore commands that try to do so. Google's [developer documentation example](https://ai.google.dev/gemini-api/docs/image-generation#3_style_transfer) of style transfer unintentionally demonstrates this by [incorrectly applying](https://x.com/minimaxir/status/1963431053193810129) the specified style. The only way to reliably shift the style is to generate a completely new image.

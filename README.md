@@ -122,6 +122,7 @@ This is just the tip of the iceberg of things you can do with Gemini 2.5 Flash I
 - Gemini 2.5 Flash Image does have moderation in the form of both prompt moderation and post-generation image moderation, although it's more leient than typical for Google's services. In the former case, the `gen.text` will indicate the refusal reason. In the latter case, a `PROHIBITED_CONTENT` error will be thrown.
 - Gemini 2.5 Flash Image is unsurprisingly bad at free-form text generation, both in terms of text fidelity and frequency of typos. However, a workaround is to provide the rendered text as an input image, and ask the model to composite it with another image.
 - Yes, both a) LLM-style prompt engineering with with Markdown-formated lists and b) old-school AI image style quality syntatic sugar such as `award-winning` and `DSLR camera` are both _extremely_ effective with Gemini 2.5 Flash Image, due to its text encoder and larger training dataset which can now more accurately discriminate which specific image traits are present in an award-winning image and what aren't. I've tried generations both with and without those tricks and the tricks definitely have an impact.
+- Cherry-picking outputs, in the sense that multiple generations with the same prompt are needed to get one good output, is surprisingly minimal for an image-generation model and it tends to interpret the intent on the first try. Any obvious logical mistakes are consistently fixed with more prompt engineering. Most superflous prompts you see in the examples are cases where such a fix is applied.
 
 ## Miscellaneous Notes
 
@@ -129,7 +130,6 @@ This is just the tip of the iceberg of things you can do with Gemini 2.5 Flash I
 - gemimg intentionally does not support true multiturn conversations within a single thread as a) the technical lift for doing so would no longer make this package lightweight and b) it is unclear if it's actually better for the typical use cases.
 - By default, input images to `generate()` are resized such that their max dimension is 768px while maintaining the aspect ratio. This is done a) as a sanity safeguard against providing a massive image and b) Gemini processes images in tiles of 768x768px, so this forces the input to be 1 tile which should lower costs and improve consistency. If you want to disable this behavior, set `resize_inputs=False`.
 - Do not question my example image prompts. I assure you, there is a specific reason or objective for every model input and prompt engineering trick. There is a method to my madness...although for this particular project I confess its more madness than method.
-- Cherry-picking outputs, in the sense that multiple generations with the same prompt are needed to get one good output, is surprisingly minimal for an image-generation model and it tends to interpret the intent on the first try. Any obvious logical mistakes are consistently fixed with more prompt engineering. Most superflous prompts you see in the examples are cases where such a fix is applied.
 
 ## Roadmap
 

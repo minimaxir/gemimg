@@ -129,6 +129,7 @@ This is just the tip of the iceberg of things you can do with Gemini 2.5 Flash I
 - gemimg intentionally does not support true multiturn conversations within a single thread as a) the technical lift for doing so would no longer make this package lightweight and b) it is unclear if it's actually better for the typical use cases.
 - By default, input images to `generate()` are resized such that their max dimension is 768px while maintaining the aspect ratio. This is done a) as a sanity safeguard against providing a massive image and b) Gemini processes images in tiles of 768x768px, so this forces the input to be 1 tile which should lower costs and improve consistency. If you want to disable this behavior, set `resize_inputs=False`.
 - Do not question my example image prompts. I assure you, there is a specific reason or objective for every model input and prompt engineering trick. There is a method to my madness...although for this particular project I confess its more madness than method.
+- Cherry-picking outputs, in the sense that multiple generations with the same prompt are needed to get one good output, is surprisingly minimal for an image-generation model and it tends to interpret the intent on the first try. Any obvious logical mistakes are consistently fixed with more prompt engineering. Most superflous prompts you see in the examples are cases where such a fix is applied.
 
 ## Roadmap
 

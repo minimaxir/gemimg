@@ -1,6 +1,6 @@
 # gemimg
 
-gemimg is a lightweight (<400 LoC) Python package for easily interfacing with Google's Gemini API and the Gemini 2.5 Flash Image (a.k.a. Nano Banana) with robust features. This tool allows for:
+gemimg is a lightweight (<400 LoC) Python package for easily interfacing with Google's [Gemini API](https://ai.google.dev) and the [Gemini 2.5 Flash Image model](https://deepmind.google/models/gemini/image/) (a.k.a. Nano Banana) with robust features. This tool allows for:
 
 - Create images with only a few lines of code!
 - Minimal dependencies, and does not use Google's Client SDK.
@@ -72,7 +72,7 @@ gen_edit = g.generate(edit_prompt, gen.image)
 
 ![](/docs/notebooks/gens/Yfu8aIfpHufVz7IP4_WEsAc@0.5x.webp)
 
-You can also input two (or more!) images/image paths to do things like combine images or put an object from Image A into Image B without having to train a [LoRA](https://huggingface.co/docs/diffusers/training/lora). For example, take this selfie of myself, and a fantasy lava pool generated with gemimg that beckons me to claim its power:
+You can also input two (or more!) images/image paths to do things like combine images or put an object from Image A into Image B without having to train a [LoRA](https://huggingface.co/docs/diffusers/training/lora). For example, here's a mirror selfie of myself, and a fantasy lava pool generated with gemimg that beckons me to claim its power:
 
 ![](/docs/notebooks/gens/composite_max.webp)
 

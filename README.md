@@ -45,7 +45,38 @@ gen = g.generate("A kitten with prominent purple-and-green fur.")
 
 The generated image is stored as a `PIL.Image` object and can be retrieved for example with `gen.image` for passing again to Gemini 2.5 Flash Image for further edits. By default, `generate` also automatically saves the generated image as a PNG file in the current working directory. You can save a WEBP instead by specifying `webp=True`, change the save directory by specifying `save_dir`, or disable the saving behavior with `save=False`.
 
-You can also guide the generation with an input drawing, similar to [ControlNet](https://github.com/lllyasviel/ControlNet) implementations. As an example:
+Due to Gemini 2.5 Flash Image's multimodal text encoder, you can create nuanced prompts including details and positioning that are not as effective Flux or Midjourney:
+
+```py3
+prompt = """
+Create an image of a three-dimensional pancake in the shape of a skull, garnished on top with blueberries and maple syrup.
+"""
+
+gen = g.generate(prompt)
+```
+
+![](/docs/notebooks/gens/7fm8aJD0Lp6ymtkPpqvn0QU@0.5x.webp)
+
+Gemini 2.5 Flash Image allows you to make highly-nuanced edits to images. With gemimg, you can pass along the image you just generated very easily for editing.
+
+```py3
+edit_prompt = """
+Make ALL of the following edits to the image:
+- Put a strawberry in the left eye socket.
+- Put a blackberry in the right eye socket.
+- Put a mint garnish on top of the pancake.
+- Change the plate to a plate-shaped chocolate-chip cookie.
+- Add happy people to the background.
+"""
+
+gen_edit = g.generate(edit_prompt, gen.image)
+```
+
+![](/docs/notebooks/gens/Yfu8aIfpHufVz7IP4_WEsAc@0.5x.webp)
+
+You can also input two (or more!) images/image paths to do things like combine images or put the object from Image A into Image B.
+
+You can also guide the generation with an input image, similar to [ControlNet](https://github.com/lllyasviel/ControlNet) implementations. As an example, given this input drawing and prompt:
 
 ![](docs/files/pose_control_base.png)
 
@@ -74,6 +105,7 @@ The image is an award-winning highly-detailed painting, oil on oaken canvas. All
 
 - gemimg is intended to be bespoke and very tightly scoped. **Support for other image generation APIs and/or endpoints will not be supported**, unless they follow the identical APIs (i.e. a hypothetical `gemini-3-flash-image`). As this repository is designed to be future-proof, there likely will not be many updates other than compatability fixes.
 - gemimg intentionally does not support true multiturn conversations within a single thread as a) the technical lift for doing so would no longer make this package lightweight and b) it is unclear if it's actually better for the typical use cases.
+- Do not question my example image prompts. I assure you, there is a specific reason or test for every model input and prompt engineering trick. There is a method to my madness, although in this case it may be more madness than method.
 
 ## Roadmap
 

@@ -25,7 +25,7 @@ pip3 install gemimg
 uv pip install gemimg
 ```
 
-## Quick, Fun Demo
+## Demo
 
 You can demo chat-apps very quickly with simpleaichat! First, you will need to get a Gemini API key (from a project which has billing information)L
 
@@ -44,6 +44,24 @@ gen = g.generate("A kitten with prominent purple-and-green fur.")
 ```
 
 The generated image is stored as a `PIL.Image` object and can be retrieved for example with `gen.image` for passing again to Gemini 2.5 Flash Image for further edits. By default, `generate` also automatically saves the generated image as a PNG file in the current working directory. You can save a WEBP instead by specifying `webp=True`, change the save directory by specifying `save_dir`, or disable the saving behavior with `save=False`.
+
+You can also guide the generation with an input drawing, similar to [ControlNet](https://github.com/lllyasviel/ControlNet) implementations. As an example:
+
+![](docs/files/pose_control_base.png)
+
+```txt
+Generate an image of characters playing a poker game sitting at a green felt table, directly facing the front. This new image MUST map ALL of the following characters to the poses and facial expressions represented by the specified colors of the provided image:
+- Green: Spongebob SquarePants
+- Red: Shadow the Hedgehog
+- Purple: Pedro Pascal
+- Pink: Taylor Swift
+- Blue: The Mona Lisa
+- Yellow: Evangelion Unit-01 from "Neon Genesis Evangelion"
+
+The image is an award-winning highly-detailed painting, oil on oaken canvas. All characters MUST adhere to the oil on oaken canvas artistic style, even if this varies from their typical styles. All characters must be present individually in the image.
+```
+
+![](docs/notebooks/gens/qEC-aPT-Joahz7IP07Lo4Qw.webp)
 
 ## Gemini 2.5 Flash Image Model Limitations
 

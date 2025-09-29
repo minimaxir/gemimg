@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import List, Optional, Union
 
 import httpx
@@ -67,11 +68,9 @@ class GemImg:
             kwargs = {k: v for k, v in locals().items() if k != "self"}
             return self._generate_multiple(**kwargs)
 
-        parts = self._build_parts(prompt, imgs, resize_inputs)
-
         query_params = {
             "generationConfig": {"temperature": temperature},
-            "contents": [{"parts": parts}],
+            "contents": [{"parts": self._build_parts(prompt, imgs, resize_inputs)}],
         }
 
         headers = {"Content-Type": "application/json", "x-goog-api-key": self.api_key}
@@ -135,6 +134,52 @@ class GemImg:
                 )
             ],
         )
+
+    def generate_batch(
+        self,
+        prompts,
+        resize_inputs: bool = True,
+        batch_name: str = datetime.now().strftime("gemimg_%Y%m%d_%H%M%S"),
+    ) -> str:
+        requests = []
+        for i, prompt in enumerate(prompts):
+            request = {
+                "request": {
+                    "generationConfig": {"temperature": prompt.get("temperature", 1.0)},
+                    "contents": [
+                        {
+                            "parts": self._build_parts(
+                                prompt.get("prompt"), prompt.get("imgs"), resize_inputs
+                            )
+                        }
+                    ],
+                },
+                "metadata": {"key": f"request-{i}"},
+            }
+            requests.append(request)
+
+        query_params = {
+            "batch": {
+                "display_name": batch_name,
+                "input_config": {"requests": {"requests": requests}},
+            },
+        }
+
+        headers = {"Content-Type": "application/json", "x-goog-api-key": self.api_key}
+        api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:batchGenerateContent"
+
+        try:
+            response = self.client.post(
+                api_url, json=query_params, headers=headers, timeout=120
+            )
+        except httpx.exceptions.Timeout:
+            print("Request Timeout")
+            return None
+        except httpx.HTTPStatusError as e:
+            print(f"HTTP error occurred: {e}")
+            return None
+
+        return response.json()
 
     def _generate_multiple(self, n: int, **kwargs) -> "ImageGen":
         """Helper to generate multiple images by accumulating results."""

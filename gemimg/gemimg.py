@@ -23,6 +23,27 @@ class GemImg:
                 "GEMINI_API_KEY is required. Pass it as `api_key`, set it as an environment variable or in .env file."
             )
 
+    def _build_parts(
+        self,
+        prompt: Optional[str] = None,
+        imgs: Optional[Union[str, Image.Image, List[str], List[Image.Image]]] = None,
+        resize_inputs: bool = True,
+    ):
+        parts = []
+
+        if imgs:
+            # Ensure imgs is a list
+            if isinstance(imgs, (str, Image.Image)):
+                imgs = [imgs]
+
+            img_b64_strings = [img_to_b64(img, resize_inputs) for img in imgs]
+            parts.extend([img_b64_part(b64_str) for b64_str in img_b64_strings])
+
+        if prompt:
+            parts.append({"text": prompt.strip()})
+
+        return parts
+
     def generate(
         self,
         prompt: Optional[str] = None,
@@ -46,18 +67,7 @@ class GemImg:
             kwargs = {k: v for k, v in locals().items() if k != "self"}
             return self._generate_multiple(**kwargs)
 
-        parts = []
-
-        if imgs:
-            # Ensure imgs is a list
-            if isinstance(imgs, (str, Image.Image)):
-                imgs = [imgs]
-
-            img_b64_strings = [img_to_b64(img, resize_inputs) for img in imgs]
-            parts.extend([img_b64_part(b64_str) for b64_str in img_b64_strings])
-
-        if prompt:
-            parts.append({"text": prompt.strip()})
+        parts = self._build_parts(prompt, imgs, resize_inputs)
 
         query_params = {
             "generationConfig": {"temperature": temperature},

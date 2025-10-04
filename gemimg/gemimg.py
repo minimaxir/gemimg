@@ -6,7 +6,7 @@ import httpx
 from dotenv import load_dotenv
 from PIL import Image
 
-from .utils import b64_to_img, img_b64_part, img_to_b64
+from .utils import _validate_aspect, b64_to_img, img_b64_part, img_to_b64
 
 load_dotenv()
 
@@ -27,6 +27,7 @@ class GemImg:
         self,
         prompt: Optional[str] = None,
         imgs: Optional[Union[str, Image.Image, List[str], List[Image.Image]]] = None,
+        aspect_ratio: str = "1:1",
         resize_inputs: bool = True,
         save: bool = True,
         save_dir: str = "",
@@ -60,7 +61,10 @@ class GemImg:
             parts.append({"text": prompt.strip()})
 
         query_params = {
-            "generationConfig": {"temperature": temperature},
+            "generationConfig": {
+                "temperature": temperature,
+                "imageConfig": {"aspectRatio": _validate_aspect(aspect_ratio)},
+            },
             "contents": [{"parts": parts}],
         }
 

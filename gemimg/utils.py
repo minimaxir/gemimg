@@ -5,6 +5,31 @@ from typing import List, Optional, Tuple, Union
 
 from PIL import Image
 
+VALID_ASPECTS = [
+    "1:1",
+    "2:3",
+    "3:2",
+    "3:4",
+    "4:3",
+    "4:5",
+    "5:4",
+    "9:16",
+    "16:9",
+    "21:9",
+]
+
+
+_VALID_ASPECTS_SET = set(VALID_ASPECTS)
+
+
+def _validate_aspect(aspect_ratio: str) -> str:
+    if aspect_ratio not in _VALID_ASPECTS_SET:
+        raise ValueError(
+            f"'{aspect_ratio}' is invalid. "
+            f"Supported aspect ratios: {', '.join(VALID_ASPECTS)}"
+        )
+    return aspect_ratio
+
 
 def resize_image(img: Image.Image, max_size: int = 768) -> Image.Image:
     """

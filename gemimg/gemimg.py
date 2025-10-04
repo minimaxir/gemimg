@@ -15,7 +15,7 @@ load_dotenv()
 class GemImg:
     api_key: str = field(default=os.getenv("GEMINI_API_KEY"), repr=False)
     client: httpx.Client = field(default_factory=httpx.Client, repr=False)
-    model: str = "gemini-2.5-flash-image-preview"
+    model: str = "gemini-2.5-flash-image"
 
     def __post_init__(self):
         if not self.api_key:

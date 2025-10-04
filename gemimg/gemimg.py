@@ -64,6 +64,7 @@ class GemImg:
             "generationConfig": {
                 "temperature": temperature,
                 "imageConfig": {"aspectRatio": _validate_aspect(aspect_ratio)},
+                "responseModalities": ["Image"],
             },
             "contents": [{"parts": parts}],
         }
@@ -94,14 +95,11 @@ class GemImg:
 
         response_parts = candidates["content"]["parts"]
 
-        output_texts = []
         output_images = []
 
         # Parse response parts for text and images
         for part in response_parts:
-            if "text" in part:
-                output_texts.append(part["text"])
-            elif "inlineData" in part:
+            if "inlineData" in part:
                 output_images.append(b64_to_img(part["inlineData"]["data"]))
 
         output_image_paths = []
@@ -119,7 +117,6 @@ class GemImg:
                     output_image_paths.append(image_path)
 
         return ImageGen(
-            texts=output_texts,
             images=output_images,
             image_paths=output_image_paths,
             usages=[
@@ -155,7 +152,6 @@ class Usage:
 
 @dataclass
 class ImageGen:
-    texts: List[str] = field(default_factory=list)
     images: List[Image.Image] = field(default_factory=list)
     image_paths: List[str] = field(default_factory=list)
     usages: List[Usage] = field(default_factory=list)
@@ -167,10 +163,6 @@ class ImageGen:
     @property
     def image_path(self) -> Optional[str]:
         return self.image_paths[0] if self.image_paths else None
-
-    @property
-    def text(self) -> Optional[str]:
-        return self.texts[0] if self.texts else None
 
     @property
     def usage(self) -> Optional[Usage]:

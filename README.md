@@ -2,9 +2,10 @@
 
 gemimg is a lightweight (<400 LoC) Python package for easily interfacing with Google's [Gemini API](https://ai.google.dev) and the [Gemini 2.5 Flash Image model](https://deepmind.google/models/gemini/image/) (a.k.a. Nano Banana) with robust features. This tool allows for:
 
-- Create images with only a few lines of code!
+- Create images in many aspect ratios with only a few lines of code!
 - Minimal dependencies, and does not use Google's Client SDK.
 - Handles image I/O, including multi-image I/O and image encoding/decoding.
+- Generates images only: no irrelevant text output
 - Utilities for common use cases, such as saving, resizing, and compositing multiple images.
 
 Although Gemini 2.5 Flash Image can be used for free in [Google AI Studio](https://aistudio.google.com/) or [Google Gemini](https://gemini.google.com/), those interfaces place a visible watermark on their outputs and have generation limits. Using gemimg and the Gemini API directly, not only do you have more programmatic control over the generation, but it's much easier to do more complex inputs which increases productivity for power users.
@@ -72,6 +73,31 @@ gen_edit = g.generate(edit_prompt, gen.image)
 
 ![](/docs/notebooks/gens/Yfu8aIfpHufVz7IP4_WEsAc@0.5x.webp)
 
+You may have noticed from the previous example that the prompt input is a Markdown dashed list. As a model based off of Gemini's text encoder, Nano Banana is extremely responsive to Markdown formatting compared to older text encoders used in traditional image generation models, and you can prompt engineer highly nuanced subject and compositional requirements, and Nano Banana follows them with very high accuracy:
+
+```py3
+prompt = """
+Create an image featuring three specific kittens in three specific positions.
+
+All of the kittens MUST follow these descriptions EXACTLY:
+- Left: a kitten with prominent black-and-silver fur, wearing both blue denim overalls and a blue plain denim baseball hat.
+- Middle: a kitten with prominent white-and-gold fur and prominent gold-colored long goatee facial hair, wearing a 24k-carat golden monocle.
+- Right: a kitten with prominent #9F2B68-and-#00FF00 fur, wearing a San Franciso Giants sports jersey.
+
+Aspects of the image composition that MUST be followed EXACTLY:
+- All kittens MUST be positioned according to the "rule of thirds" both horizontally and vertically.
+- All kittens MUST lay prone, facing the camera.
+- All kittens MUST have heterochromatic eye colors matching their two specified fur colors.
+- The image is shot on top of a bed in a multimillion-dollar Victorian mansion.
+- The image is a Pulitzer Prize winning cover photo for The New York Times with neutral diffuse 3PM lighting for both the subjects and background that complement each other.
+- NEVER include any text, watermarks, or line overlays.
+"""
+
+gen = g.generate(prompt, aspect_ratio="16:9")
+```
+
+![](docs/notebooks/gens/s57haPv7FsOumtkP1e_mqQM@0.5x.webp)
+
 You can also input two (or more!) images/image paths to do things like combine images or put an object from Image A into Image B without having to train a [LoRA](https://huggingface.co/docs/diffusers/training/lora). For example, here's a mirror selfie of myself, and a fantasy lava pool generated with gemimg that beckons me to claim its power:
 
 ![](/docs/notebooks/gens/composite_max.webp)
@@ -116,7 +142,6 @@ This is just the tip of the iceberg of things you can do with Gemini 2.5 Flash I
 
 ## Gemini 2.5 Flash Image Model Notes
 
-- Gemini 2.5 Flash Image does not support aspect ratio control, despite developer examples implying such. Prompt engineering the text to generate in a specific ratio does _not_ have any effect. The only method to control the aspect ratio is to provide it as an input image, as the generated image tends to follow the same aspect ratio.
 - Gemini 2.5 Flash Image cannot do style transfer, e.g. `turn me into Studio Ghibli`, and seems to ignore commands that try to do so. Google's [developer documentation example](https://ai.google.dev/gemini-api/docs/image-generation#3_style_transfer) of style transfer unintentionally demonstrates this by [incorrectly applying](https://x.com/minimaxir/status/1963431053193810129) the specified style. The only way to shift the style is to generate a completely new image in that style, which can still have mixed results if the source style is intrinsic.
   - This also causes issues with the "put subject from Image A into Image B" use case if either are a substantially different style.
 - Gemini 2.5 Flash Image does have moderation in the form of both prompt moderation and post-generation image moderation, although it's more leient than typical for Google's services. In the former case, the `gen.text` will indicate the refusal reason. In the latter case, a `PROHIBITED_CONTENT` error will be thrown.

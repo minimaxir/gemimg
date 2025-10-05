@@ -6,7 +6,7 @@ import httpx
 from dotenv import load_dotenv
 from PIL import Image
 
-from .utils import b64_to_img, img_b64_part, img_to_b64
+from .utils import _validate_aspect, b64_to_img, img_b64_part, img_to_b64
 
 load_dotenv()
 
@@ -15,7 +15,7 @@ load_dotenv()
 class GemImg:
     api_key: str = field(default=os.getenv("GEMINI_API_KEY"), repr=False)
     client: httpx.Client = field(default_factory=httpx.Client, repr=False)
-    model: str = "gemini-2.5-flash-image-preview"
+    model: str = "gemini-2.5-flash-image"
 
     def __post_init__(self):
         if not self.api_key:
@@ -27,6 +27,7 @@ class GemImg:
         self,
         prompt: Optional[str] = None,
         imgs: Optional[Union[str, Image.Image, List[str], List[Image.Image]]] = None,
+        aspect_ratio: str = "1:1",
         resize_inputs: bool = True,
         save: bool = True,
         save_dir: str = "",
@@ -60,7 +61,11 @@ class GemImg:
             parts.append({"text": prompt.strip()})
 
         query_params = {
-            "generationConfig": {"temperature": temperature},
+            "generationConfig": {
+                "temperature": temperature,
+                "imageConfig": {"aspectRatio": _validate_aspect(aspect_ratio)},
+                "responseModalities": ["Image"],
+            },
             "contents": [{"parts": parts}],
         }
 
@@ -90,14 +95,11 @@ class GemImg:
 
         response_parts = candidates["content"]["parts"]
 
-        output_texts = []
         output_images = []
 
         # Parse response parts for text and images
         for part in response_parts:
-            if "text" in part:
-                output_texts.append(part["text"])
-            elif "inlineData" in part:
+            if "inlineData" in part:
                 output_images.append(b64_to_img(part["inlineData"]["data"]))
 
         output_image_paths = []
@@ -115,7 +117,6 @@ class GemImg:
                     output_image_paths.append(image_path)
 
         return ImageGen(
-            texts=output_texts,
             images=output_images,
             image_paths=output_image_paths,
             usages=[
@@ -151,7 +152,6 @@ class Usage:
 
 @dataclass
 class ImageGen:
-    texts: List[str] = field(default_factory=list)
     images: List[Image.Image] = field(default_factory=list)
     image_paths: List[str] = field(default_factory=list)
     usages: List[Usage] = field(default_factory=list)
@@ -163,10 +163,6 @@ class ImageGen:
     @property
     def image_path(self) -> Optional[str]:
         return self.image_paths[0] if self.image_paths else None
-
-    @property
-    def text(self) -> Optional[str]:
-        return self.texts[0] if self.texts else None
 
     @property
     def usage(self) -> Optional[Usage]:

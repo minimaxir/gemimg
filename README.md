@@ -96,7 +96,7 @@ Aspects of the image composition that MUST be followed EXACTLY:
 gen = g.generate(prompt, aspect_ratio="16:9")
 ```
 
-![](docs/notebooks/gens/s57haPv7FsOumtkP1e_mqQM@0.5x.webp)
+![](docs/notebooks/gens/s57haPv7FsOumtkP1e_mqQM.webp)
 
 You can also input two (or more!) images/image paths to do things like combine images or put an object from Image A into Image B without having to train a [LoRA](https://huggingface.co/docs/diffusers/training/lora). For example, here's a mirror selfie of myself, and a fantasy lava pool generated with gemimg that beckons me to claim its power:
 

@@ -7,7 +7,7 @@ import httpx
 from dotenv import load_dotenv
 from PIL import Image
 
-from .utils import _validate_aspect, b64_to_img, img_b64_part, img_to_b64
+from .utils import _validate_aspect, b64_to_img, img_b64_part, img_to_b64, save_image
 
 load_dotenv()
 
@@ -37,6 +37,7 @@ class GemImg:
         temperature: float = 1.0,
         webp: bool = False,
         n: int = 1,
+        store_prompt: bool = False,
     ) -> Optional["ImageGen"]:
         if not prompt and not imgs:
             raise ValueError("Either 'prompt' or 'imgs' must be provided")
@@ -113,15 +114,15 @@ class GemImg:
         if save:
             response_id = response_data["responseId"]
             file_extension = "webp" if webp else "png"
-            if len(output_images) == 1:
-                image_path = f"{response_id}.{file_extension}"
-                output_images[0].save(os.path.join(save_dir, image_path))
+            for idx, img in enumerate(output_images):
+                image_path = (
+                    f"{response_id}.{file_extension}"
+                    if len(output_images) == 1
+                    else f"{response_id}-{idx}.{file_extension}"
+                )
+                full_path = os.path.join(save_dir, image_path)
+                save_image(img, full_path, store_prompt, prompt)
                 output_image_paths.append(image_path)
-            elif len(output_images) > 1:
-                for idx, img in enumerate(output_images):
-                    image_path = f"{response_id}-{idx}.{file_extension}"
-                    img.save(os.path.join(save_dir, image_path))
-                    output_image_paths.append(image_path)
 
         return ImageGen(
             images=output_images,

@@ -3,7 +3,7 @@ import io
 import math
 from typing import List, Optional, Tuple, Union
 
-from PIL import Image
+from PIL import Image, PngImagePlugin
 
 # https://ai.google.dev/gemini-api/docs/image-generation#aspect_ratios
 VALID_ASPECTS = {
@@ -111,6 +111,29 @@ def img_b64_part(img_b64: str) -> dict:
         A dictionary representing the API part.
     """
     return {"inline_data": {"mime_type": "image/webp", "data": img_b64}}
+
+
+def save_image(
+    img: Image.Image,
+    path: str,
+    store_prompt: bool = False,
+    prompt: Optional[str] = None,
+) -> None:
+    """
+    Save an image to a file path, optionally with prompt metadata for PNG files.
+
+    Args:
+        img: The PIL Image to save.
+        path: The file path where the image will be saved.
+        store_prompt: Whether to store the prompt in PNG metadata (PNG only).
+        prompt: The prompt text to store in metadata (if store_prompt=True).
+    """
+    if store_prompt and path.endswith(".png") and prompt:
+        pnginfo = PngImagePlugin.PngInfo()
+        pnginfo.add_text("gemimg_prompt", prompt.strip())
+        img.save(path, pnginfo=pnginfo)
+    else:
+        img.save(path)
 
 
 def composite_images(

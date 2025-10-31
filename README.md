@@ -7,6 +7,7 @@ gemimg is a lightweight (<400 LoC) Python package for easily interfacing with Go
 - Handles image I/O, including multi-image I/O and image encoding/decoding.
 - Generates images only: no irrelevant text output
 - Utilities for common use cases, such as saving, resizing, and compositing multiple images.
+- Allows [optionally storing the prompt](docs/notebooks/store_prompt_metadata.ipynb) in the PNG metadata.
 
 Although Gemini 2.5 Flash Image can be used for free in [Google AI Studio](https://aistudio.google.com/) or [Google Gemini](https://gemini.google.com/), those interfaces place a visible watermark on their outputs and have generation limits. Using gemimg and the Gemini API directly, not only do you have more programmatic control over the generation, but it's much easier to do more complex inputs which increases productivity for power users.
 

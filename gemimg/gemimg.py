@@ -89,7 +89,7 @@ class GemImg:
         # Check for prohibited content
         candidates = response_data["candidates"][0]
         finish_reason = candidates.get("finishReason")
-        if finish_reason == "PROHIBITED_CONTENT":
+        if finish_reason in ["PROHIBITED_CONTENT", "NO_IMAGE"]:
             print(f"Image was not generated due to {finish_reason}.")
             return None
 

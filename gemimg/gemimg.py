@@ -93,6 +93,10 @@ class GemImg:
             print(f"Image was not generated due to {finish_reason}.")
             return None
 
+        if "content" not in candidates:
+            print("No image is present in the response.")
+            return None
+
         response_parts = candidates["content"]["parts"]
 
         output_images = []

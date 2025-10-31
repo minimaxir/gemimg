@@ -1,3 +1,4 @@
+import logging
 import os
 from dataclasses import dataclass, field
 from typing import List, Optional, Union
@@ -9,6 +10,8 @@ from PIL import Image
 from .utils import _validate_aspect, b64_to_img, img_b64_part, img_to_b64
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -77,10 +80,10 @@ class GemImg:
                 api_url, json=query_params, headers=headers, timeout=120
             )
         except httpx.exceptions.Timeout:
-            print("Request Timeout")
+            logger.error("Request Timeout")
             return None
         except httpx.HTTPStatusError as e:
-            print(f"HTTP error occurred: {e}")
+            logger.error(f"HTTP error occurred: {e}")
             return None
 
         response_data = response.json()
@@ -90,11 +93,11 @@ class GemImg:
         candidates = response_data["candidates"][0]
         finish_reason = candidates.get("finishReason")
         if finish_reason in ["PROHIBITED_CONTENT", "NO_IMAGE"]:
-            print(f"Image was not generated due to {finish_reason}.")
+            logger.error(f"Image was not generated due to {finish_reason}.")
             return None
 
         if "content" not in candidates:
-            print("No image is present in the response.")
+            logger.error("No image is present in the response.")
             return None
 
         response_parts = candidates["content"]["parts"]

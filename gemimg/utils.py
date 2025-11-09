@@ -3,35 +3,37 @@ import io
 import math
 from typing import List, Optional, Tuple, Union
 
-from PIL import Image
+from PIL import Image, PngImagePlugin
 
-VALID_ASPECTS = [
-    "1:1",
-    "2:3",
-    "3:2",
-    "3:4",
-    "4:3",
-    "4:5",
-    "5:4",
-    "9:16",
-    "16:9",
-    "21:9",
-]
+# https://ai.google.dev/gemini-api/docs/image-generation#aspect_ratios
+VALID_ASPECTS = {
+    "1:1": (1024, 1024),
+    "2:3": (832, 1248),
+    "3:2": (1248, 832),
+    "3:4": (864, 1184),
+    "4:3": (1184, 864),
+    "4:5": (896, 1152),
+    "5:4": (1152, 896),
+    "9:16": (768, 1344),
+    "16:9": (1344, 768),
+    "21:9": (1536, 672),
+}
 
 
-_VALID_ASPECTS_SET = set(VALID_ASPECTS)
+_VALID_ASPECTS_SET = set(VALID_ASPECTS.keys())
+_VALID_DIMS_SET = set(VALID_ASPECTS.values())
 
 
 def _validate_aspect(aspect_ratio: str) -> str:
     if aspect_ratio not in _VALID_ASPECTS_SET:
         raise ValueError(
             f"'{aspect_ratio}' is invalid. "
-            f"Supported aspect ratios: {', '.join(VALID_ASPECTS)}"
+            f"Supported aspect ratios: {', '.join(VALID_ASPECTS.keys())}"
         )
     return aspect_ratio
 
 
-def resize_image(img: Image.Image, max_size: int = 768) -> Image.Image:
+def resize_image(img: Image.Image, max_size: int = 1024) -> Image.Image:
     """
     Resize an image so that its maximum dimension (width or height) is `max_size`
     while maintaining the aspect ratio.
@@ -43,6 +45,11 @@ def resize_image(img: Image.Image, max_size: int = 768) -> Image.Image:
     Returns:
         The resized PIL Image.
     """
+
+    # if the image is from the API, do not resize
+    if img.size in _VALID_DIMS_SET:
+        return img
+
     width, height = img.size
 
     # Determine scaling factor based on the larger dimension
@@ -104,6 +111,29 @@ def img_b64_part(img_b64: str) -> dict:
         A dictionary representing the API part.
     """
     return {"inline_data": {"mime_type": "image/webp", "data": img_b64}}
+
+
+def save_image(
+    img: Image.Image,
+    path: str,
+    store_prompt: bool = False,
+    prompt: Optional[str] = None,
+) -> None:
+    """
+    Save an image to a file path, optionally with prompt metadata for PNG files.
+
+    Args:
+        img: The PIL Image to save.
+        path: The file path where the image will be saved.
+        store_prompt: Whether to store the prompt in PNG metadata (PNG only).
+        prompt: The prompt text to store in metadata (if store_prompt=True).
+    """
+    if store_prompt and path.endswith(".png") and prompt:
+        pnginfo = PngImagePlugin.PngInfo()
+        pnginfo.add_text("gemimg_prompt", prompt.strip())
+        img.save(path, pnginfo=pnginfo)
+    else:
+        img.save(path)
 
 
 def composite_images(

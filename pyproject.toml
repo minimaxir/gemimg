@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gemimg"
-version = "0.3.0"
+version = "0.3.1"
 description = "Lightweight wrapper for generating and editing images from Nano Banana / Gemini 2.5 Flash Image."
 readme = "README.md"
 license = "MIT"
@@ -21,6 +21,9 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/minimaxir/gemimg"
+
+[project.scripts]
+gemimg = "gemimg.__main__:main"
 
 [tool.setuptools.packages.find]
 include = ["gemimg*"]

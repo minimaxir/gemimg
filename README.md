@@ -141,6 +141,20 @@ gen = g.generate(prompt, "pose_control_base.png")
 
 This is just the tip of the iceberg of things you can do with Gemini 2.5 Flash Image (a blog post is coming shortly). By leveraging Gemini 2.5 Flash Image's long context window, you can even give it HTML and have it render a webpage ([Jupyter Notebook](/docs/notebooks/html_webpage.ipynb)). And that's not even getting into JSON prompting of the model, which can offer _extremely_ granular control of the generation. ([Jupyter Notebook](docs/notebooks/character_json.ipynb))
 
+## Command-Line Interface
+
+gemimg can also be used from the command line without writing Python code:
+
+```sh
+gemimg "A kitten with prominent purple-and-green fur."
+```
+
+```sh
+python -m gemimg "A kitten with prominent purple-and-green fur."
+```
+
+Common options: `-i/--input-images`, `-o/--output-file`, `--aspect-ratio`, `--output-dir`, `-n` (number of images), `--webp`, `--store-prompt`, `-f/--force`. The API key can be provided via `--api-key` or the `GEMINI_API_KEY` environment variable.
+
 ## Gemini 2.5 Flash Image Model Notes
 
 - Gemini 2.5 Flash Image cannot do style transfer, e.g. `turn me into Studio Ghibli`, and seems to ignore commands that try to do so. Google's [developer documentation example](https://ai.google.dev/gemini-api/docs/image-generation#3_style_transfer) of style transfer unintentionally demonstrates this by [incorrectly applying](https://x.com/minimaxir/status/1963431053193810129) the specified style. The only way to shift the style is to generate a completely new image in that style, which can still have mixed results if the source style is intrinsic.

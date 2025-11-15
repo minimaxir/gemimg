@@ -88,8 +88,11 @@ class GemImg:
             return None
 
         response_data = response.json()
-        usage_metadata = response_data["usageMetadata"]
+        if err := response_data.get('error'):
+            logger.error(f"API Response Error: {err['code']} — {err['message']}")
+            return None
 
+        usage_metadata = response_data["usageMetadata"]
         # Check for prohibited content
         candidates = response_data["candidates"][0]
         finish_reason = candidates.get("finishReason")

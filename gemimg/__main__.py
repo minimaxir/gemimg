@@ -33,6 +33,11 @@ def main():
         "--model", default="gemini-2.5-flash-image", help="The model to use."
     )
     parser.add_argument(
+        "--base-url",
+        default=os.getenv("GOOGLE_GEMINI_BASE_URL"),
+        help="Alternative Gemini API endpoint for your organization.",
+    )
+    parser.add_argument(
         "--aspect-ratio", default="1:1", help="Aspect ratio of the generated image."
     )
     parser.add_argument(
@@ -70,7 +75,12 @@ def main():
             "API key is required. Provide it with --api-key or set the GEMINI_API_KEY environment variable."
         )
 
-    gem_img = GemImg(api_key=args.api_key, model=args.model)
+    if args.base_url:
+        base_url = args.base_url
+    else:
+        base_url = "https://generativelanguage.googleapis.com"
+
+    gem_img = GemImg(api_key=args.api_key, model=args.model, base_url=base_url)
 
     # We call generate with save=False to handle file saving manually.
     result = gem_img.generate(

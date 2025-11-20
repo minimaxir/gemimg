@@ -38,6 +38,7 @@ class GemImg:
         webp: bool = False,
         n: int = 1,
         store_prompt: bool = False,
+        image_size: str = "2K",
     ) -> Optional["ImageGen"]:
         if not prompt and not imgs:
             raise ValueError("Either 'prompt' or 'imgs' must be provided")
@@ -72,6 +73,12 @@ class GemImg:
             },
             "contents": [{"parts": parts}],
         }
+
+        # may need a less hard-coded heuristic to detect Nano Banana Pro
+        if "-pro" in self.model:
+            if image_size not in ["1K", "2K", "4K"]:
+                raise ValueError("image_size must be one of '1K', '2K', or '4K'")
+            query_params["generationConfig"]["imageConfig"]["imageSize"] = image_size
 
         headers = {"Content-Type": "application/json", "x-goog-api-key": self.api_key}
         api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"

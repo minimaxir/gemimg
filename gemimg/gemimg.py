@@ -88,7 +88,7 @@ class GemImg:
             return None
 
         response_data = response.json()
-        if err := response_data.get('error'):
+        if err := response_data.get("error"):
             logger.error(f"API Response Error: {err['code']} — {err['message']}")
             return None
 
@@ -169,11 +169,11 @@ class ImageGen:
 
     @property
     def image(self) -> Optional[Image.Image]:
-        return self.images[0] if self.images else None
+        return self.images[-1] if self.images else None
 
     @property
     def image_path(self) -> Optional[str]:
-        return self.image_paths[0] if self.image_paths else None
+        return self.image_paths[-1] if self.image_paths else None
 
     @property
     def usage(self) -> Optional[Usage]:

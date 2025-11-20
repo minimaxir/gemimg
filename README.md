@@ -1,6 +1,6 @@
 # gemimg
 
-gemimg is a lightweight (<400 LoC) Python package for easily interfacing with Google's [Gemini API](https://ai.google.dev) and the [Gemini 2.5 Flash Image model](https://deepmind.google/models/gemini/image/) (a.k.a. Nano Banana) with robust features. This tool allows for:
+gemimg is a lightweight Python package for easily interfacing with Google's [Gemini API](https://ai.google.dev) and the [Nano Banana model](https://deepmind.google/models/gemini/image/) (a.k.a. Gemini 2.5 Flash Image) and Nano Banana Pro with robust features. This tool allows for:
 
 - Create images in many aspect ratios with only a few lines of code!
 - Minimal dependencies, and does not use Google's Client SDK.
@@ -35,6 +35,14 @@ g = GemImg(api_key="AI...")
 
 You can also pass the API key by storing it in an `.env` file with a `GEMINI_API_KEY` field in the working directory (recommended), or by setting the environment variable of `GEMINI_API_KEY` directly to the API key.
 
+If you want to generate from Nano Banana Pro, you can specify the `model`:
+
+```py3
+from gemimg import GemImg
+
+g = GemImg(model="gemini-3-pro-image-preview")
+```
+
 Now, you can generate images with a simple text prompt!
 
 ```py3
@@ -43,9 +51,9 @@ gen = g.generate("A kitten with prominent purple-and-green fur.")
 
 ![](/docs/notebooks/gens/JP28aM2cFOODqtsPi7_J8A0@0.5x.webp)
 
-The generated image is stored as a `PIL.Image` object and can be retrieved with `gen.image` for passing again to Gemini 2.5 Flash Image for further edits. By default, `generate()` also automatically saves the generated image as a PNG file in the current working directory. You can save a WEBP instead by specifying `webp=True`, change the save directory by specifying `save_dir`, or disable the saving behavior with `save=False`.
+The generated image is stored as a `PIL.Image` object and can be retrieved with `gen.image` for passing again to Nano Banana for further edits. By default, `generate()` also automatically saves the generated image as a PNG file in the current working directory. You can save a WEBP instead by specifying `webp=True`, change the save directory by specifying `save_dir`, or disable the saving behavior with `save=False`.
 
-Due to Gemini 2.5 Flash Image's multimodal text encoder, you can create nuanced prompts including details and positioning that are not as consistent in Flux or Midjourney:
+Due to Nano Banana's multimodal text encoder, you can create nuanced prompts including details and positioning that are not as consistent in Flux or Midjourney:
 
 ```py3
 prompt = """
@@ -57,7 +65,7 @@ gen = g.generate(prompt)
 
 ![](/docs/notebooks/gens/7fm8aJD0Lp6ymtkPpqvn0QU@0.5x.webp)
 
-Gemini 2.5 Flash Image allows you to make highly-targeted edits to images. With gemimg, you can pass along the image you just generated very easily for editing.
+Nano Banana allows you to make highly-targeted edits to images. With gemimg, you can pass along the image you just generated very easily for editing.
 
 ```py3
 edit_prompt = """
@@ -139,7 +147,7 @@ gen = g.generate(prompt, "pose_control_base.png")
 
 [Jupyter Notebook which randomizes the character order](docs/notebooks/pose_control.ipynb).
 
-This is just the tip of the iceberg of things you can do with Gemini 2.5 Flash Image (a blog post is coming shortly). By leveraging Gemini 2.5 Flash Image's long context window, you can even give it HTML and have it render a webpage ([Jupyter Notebook](/docs/notebooks/html_webpage.ipynb)). And that's not even getting into JSON prompting of the model, which can offer _extremely_ granular control of the generation. ([Jupyter Notebook](docs/notebooks/character_json.ipynb))
+This is just the tip of the iceberg of things you can do with Nano Banana (a blog post is coming shortly). By leveraging Nano Banana's long context window, you can even give it HTML and have it render a webpage ([Jupyter Notebook](/docs/notebooks/html_webpage.ipynb)). And that's not even getting into JSON prompting of the model, which can offer _extremely_ granular control of the generation. ([Jupyter Notebook](docs/notebooks/character_json.ipynb))
 
 ## Command-Line Interface
 

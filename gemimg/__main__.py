@@ -8,7 +8,9 @@ from .utils import save_image
 
 def main():
     """CLI for generating images with GemImg."""
-    parser = argparse.ArgumentParser(description="Generate images using the Gemini API.")
+    parser = argparse.ArgumentParser(
+        description="Generate images using the Gemini API."
+    )
 
     parser.add_argument("prompt", help="The text prompt for image generation.")
     parser.add_argument(
@@ -47,14 +49,19 @@ def main():
     parser.add_argument(
         "--temperature", type=float, default=1.0, help="Generation temperature."
     )
-    parser.add_argument("--webp", action="store_true", help="Save as WEBP instead of PNG.")
     parser.add_argument(
-        "-n", type=int, default=1, help="Number of images to generate."
+        "--webp", action="store_true", help="Save as WEBP instead of PNG."
     )
+    parser.add_argument("-n", type=int, default=1, help="Number of images to generate.")
     parser.add_argument(
         "--store-prompt",
         action="store_true",
         help="Store the prompt in the image metadata.",
+    )
+    parser.add_argument(
+        "--image_size",
+        default="2K",
+        help="Image size for the generation (Nano Banana Pro only).",
     )
     parser.add_argument(
         "-f",
@@ -87,7 +94,7 @@ def main():
 
     if result and result.images:
         ext = "webp" if args.webp else "png"
-        
+
         # Determine base output path and name
         output_path = Path(args.output_dir)
         if args.output_file:
@@ -112,7 +119,7 @@ def main():
                 current_base = base_name
 
             final_path = output_path / f"{current_base}.{ext}"
-            
+
             # If not forcing overwrite, check for existence and find a unique name
             if not args.force:
                 counter = 1

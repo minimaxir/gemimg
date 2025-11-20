@@ -21,7 +21,12 @@ VALID_ASPECTS = {
 
 
 _VALID_ASPECTS_SET = set(VALID_ASPECTS.keys())
-_VALID_DIMS_SET = set(VALID_ASPECTS.values())
+_VALID_DIMS = set(VALID_ASPECTS.values())
+_VALID_DIMS_SET = (
+    _VALID_DIMS
+    | {(w * 2, h * 2) for w, h in _VALID_DIMS}
+    | {(w * 4, h * 4) for w, h in _VALID_DIMS}
+)
 
 
 def _validate_aspect(aspect_ratio: str) -> str:

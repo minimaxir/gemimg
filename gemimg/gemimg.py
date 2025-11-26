@@ -149,31 +149,35 @@ class GemImg:
             ]
 
         output_image_paths = []
+        output_subimage_paths = []
         if save:
             response_id = response_data["responseId"]
             file_extension = "webp" if webp else "png"
 
-            # Determine which images to save and their naming patterns
-            images_to_save = []
+            if grid is not None:
+                # Save original grid images only if requested
+                if grid.save_original_image:
+                    for idx, img in enumerate(output_images):
+                        suffix = "-grid" if len(output_images) == 1 else f"-grid-{idx}"
+                        image_path = f"{response_id}{suffix}.{file_extension}"
+                        full_path = Path(save_dir) / image_path
+                        save_image(img, full_path, store_prompt, prompt)
+                        output_image_paths.append(image_path)
 
-            # Add original grid images if requested
-            if grid is not None and grid.save_original_image:
+                # Save subimages
+                for idx, img in enumerate(output_subimages):
+                    suffix = "" if len(output_subimages) == 1 else f"-{idx:02d}"
+                    image_path = f"{response_id}{suffix}.{file_extension}"
+                    full_path = Path(save_dir) / image_path
+                    save_image(img, full_path, store_prompt, prompt)
+                    output_subimage_paths.append(image_path)
+            else:
+                # No grid: save original images
                 for idx, img in enumerate(output_images):
-                    suffix = "-grid" if len(output_images) == 1 else f"-grid-{idx}"
-                    images_to_save.append((img, suffix, False))
-
-            # Add subimages if grid, otherwise add original images
-            images_for_paths = output_subimages if grid is not None else output_images
-            for idx, img in enumerate(images_for_paths):
-                suffix = "" if len(images_for_paths) == 1 else f"-{idx:02d}"
-                images_to_save.append((img, suffix, True))
-
-            # Save all images in a single loop
-            for img, suffix, track_path in images_to_save:
-                image_path = f"{response_id}{suffix}.{file_extension}"
-                full_path = Path(save_dir) / image_path
-                save_image(img, full_path, store_prompt, prompt)
-                if track_path:
+                    suffix = "" if len(output_images) == 1 else f"-{idx:02d}"
+                    image_path = f"{response_id}{suffix}.{file_extension}"
+                    full_path = Path(save_dir) / image_path
+                    save_image(img, full_path, store_prompt, prompt)
                     output_image_paths.append(image_path)
 
         return ImageGen(
@@ -186,6 +190,7 @@ class GemImg:
                 )
             ],
             subimages=output_subimages,
+            subimage_paths=output_subimage_paths,
         )
 
     def _generate_multiple(self, n: int, **kwargs) -> "ImageGen":
@@ -217,6 +222,7 @@ class ImageGen:
     image_paths: List[str] = field(default_factory=list)
     usages: List[Usage] = field(default_factory=list)
     subimages: List[Image.Image] = field(default_factory=list)
+    subimage_paths: List[str] = field(default_factory=list)
 
     @property
     def image(self) -> Optional[Image.Image]:
@@ -237,6 +243,7 @@ class ImageGen:
                 image_paths=self.image_paths + other.image_paths,
                 usages=self.usages + other.usages,
                 subimages=self.subimages + other.subimages,
+                subimage_paths=self.subimage_paths + other.subimage_paths,
             )
         raise TypeError("Can only add ImageGen instances.")
 

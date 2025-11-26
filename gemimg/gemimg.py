@@ -19,6 +19,7 @@ class GemImg:
     api_key: str = field(default=os.getenv("GEMINI_API_KEY"), repr=False)
     client: httpx.Client = field(default_factory=httpx.Client, repr=False)
     model: str = "gemini-2.5-flash-image"
+    base_url: str = "https://generativelanguage.googleapis.com"
 
     def __post_init__(self):
         if not self.api_key:
@@ -81,7 +82,7 @@ class GemImg:
             query_params["generationConfig"]["imageConfig"]["imageSize"] = image_size
 
         headers = {"Content-Type": "application/json", "x-goog-api-key": self.api_key}
-        api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent"
+        api_url = f"{self.base_url}/v1beta/models/{self.model}:generateContent"
 
         try:
             response = self.client.post(

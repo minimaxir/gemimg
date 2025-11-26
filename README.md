@@ -149,6 +149,54 @@ gen = g.generate(prompt, "pose_control_base.png")
 
 This is just the tip of the iceberg of things you can do with Nano Banana (a blog post is coming shortly). By leveraging Nano Banana's long context window, you can even give it HTML and have it render a webpage ([Jupyter Notebook](/docs/notebooks/html_webpage.ipynb)). And that's not even getting into JSON prompting of the model, which can offer _extremely_ granular control of the generation. ([Jupyter Notebook](docs/notebooks/character_json.ipynb))
 
+## Grid Generation
+
+One of the most cost-effective ways to generate multiple images is through grid generation. Nano Banana Pro can generate a grid of images in a single API call, which gemimg then automatically slices into individual images. This is _significantly_ cheaper than generating images one at a time.
+
+```py3
+from gemimg import GemImg, Grid
+
+g = GemImg(model="gemini-3-pro-image")
+
+# Create a 2x2 grid configuration
+grid = Grid(rows=2, cols=2, image_size="2K")
+```
+
+The `Grid` class lets you specify:
+
+- `rows` and `cols`: Grid dimensions (tested up to 4x4)
+- `aspect_ratio`: Aspect ratio for each cell (default: "1:1")
+- `image_size`: Resolution tier - "1K", "2K", or "4K" (default: "1K")
+- `save_original_image`: Whether to also save the full grid image (default: True)
+
+Now you can generate multiple images with a single call by describing a grid layout in your prompt:
+
+```py3
+prompt = """
+Generate a 2x2 grid of images showing the four seasons.
+Top-left: Spring - cherry blossoms in a park
+Top-right: Summer - sunny beach with palm trees
+Bottom-left: Autumn - colorful fall foliage in a forest
+Bottom-right: Winter - snowy mountain landscape
+"""
+
+gen = g.generate(prompt, grid=grid)
+print(f"Generated {len(gen.images)} images")
+```
+
+The generated images are automatically sliced and stored in `gen.images`, with each subimage saved individually. For maximum cost efficiency, use a 4x4 grid with 4K resolution to generate 16 images in a single API call:
+
+```py3
+grid_4x4 = Grid(rows=4, cols=4, image_size="4K")
+# grid_4x4.num_images = 16
+# grid_4x4.output_resolution = (1024, 1024)
+# grid_4x4.grid_resolution = (4096, 4096)
+```
+
+Grid generation requires a Pro model variant (e.g., `gemini-3-pro-image`).
+
+[Jupyter Notebook](docs/notebooks/grid_generation.ipynb)
+
 ## Command-Line Interface
 
 gemimg can also be used from the command line without writing Python code:

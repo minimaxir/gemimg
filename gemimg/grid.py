@@ -62,13 +62,11 @@ class Grid:
         return self.rows * self.cols
 
     @property
-    def output_resolution(self) -> Tuple[int, int]:
-        """Output resolution for each individual image in the grid.
-
-        This is the resolution of each cell in the grid, not the total grid size.
+    def grid_resolution(self) -> Tuple[int, int]:
+        """Total resolution of the full grid image (all cells combined).
 
         Returns:
-            Tuple of (width, height) in pixels for each generated image
+            Tuple of (width, height) in pixels for the complete grid
         """
         base_resolution = VALID_ASPECTS_PRO[self.aspect_ratio]
 
@@ -81,14 +79,16 @@ class Grid:
             return (base_resolution[0] * 4, base_resolution[1] * 4)
 
     @property
-    def grid_resolution(self) -> Tuple[int, int]:
-        """Total resolution of the full grid image (all cells combined).
+    def output_resolution(self) -> Tuple[int, int]:
+        """Output resolution for each individual image in the grid.
+
+        This is the resolution of each cell in the grid, not the total grid size.
 
         Returns:
-            Tuple of (width, height) in pixels for the complete grid
+            Tuple of (width, height) in pixels for each generated image
         """
-        cell_width, cell_height = self.output_resolution
-        return (self.cols * cell_width, self.rows * cell_height)
+        grid_width, grid_height = self.grid_resolution
+        return (grid_width // self.cols, grid_height // self.rows)
 
     def __repr__(self) -> str:
         """Return string representation of the Grid."""

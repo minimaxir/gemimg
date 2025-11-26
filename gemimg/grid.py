@@ -2,7 +2,9 @@
 
 import logging
 from dataclasses import dataclass
-from typing import Tuple
+from typing import List, Tuple
+
+from PIL import Image
 
 from .utils import VALID_ASPECTS_PRO, _validate_aspect
 
@@ -21,12 +23,14 @@ class Grid:
         cols: Number of columns in the grid
         aspect_ratio: Aspect ratio string (e.g., "1:1", "16:9")
         image_size: Output image size ("1K", "2K", or "4K")
+        save_original_image: Whether to save the original grid image before slicing
     """
 
     rows: int
     cols: int
     aspect_ratio: str = "1:1"
     image_size: str = "1K"
+    save_original_image: bool = True
 
     def __post_init__(self) -> None:
         """Validate grid parameters."""
@@ -93,3 +97,27 @@ class Grid:
             f"image_size='{self.image_size}', num_images={self.num_images}, "
             f"output_resolution={self.output_resolution})"
         )
+
+    def slice_image(self, img: Image.Image) -> List[Image.Image]:
+        """Slice a grid image into individual subimages.
+
+        Args:
+            img: The full grid image to slice
+
+        Returns:
+            List of PIL Images, one for each cell in row-major order
+        """
+        width, height = img.size
+        cell_width = width // self.cols
+        cell_height = height // self.rows
+
+        subimages = []
+        for row in range(self.rows):
+            for col in range(self.cols):
+                left = col * cell_width
+                upper = row * cell_height
+                right = left + cell_width
+                lower = upper + cell_height
+                subimages.append(img.crop((left, upper, right, lower)))
+
+        return subimages

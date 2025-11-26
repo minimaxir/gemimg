@@ -7,6 +7,7 @@ import httpx
 from dotenv import load_dotenv
 from PIL import Image
 
+from .grid import Grid
 from .utils import _validate_aspect, b64_to_img, img_b64_part, img_to_b64, save_image
 
 load_dotenv()
@@ -46,9 +47,17 @@ class GemImg:
         store_prompt: bool = False,
         image_size: str = "2K",
         system_prompt: Optional[str] = None,
+        grid: Optional[Grid] = None,
     ) -> Optional["ImageGen"]:
         if not prompt and not imgs:
             raise ValueError("Either 'prompt' or 'imgs' must be provided")
+
+        # If grid is provided, use its aspect_ratio and image_size
+        if grid is not None:
+            if not self.is_pro:
+                raise ValueError("Grid generation requires a Pro model")
+            aspect_ratio = grid.aspect_ratio
+            image_size = grid.image_size
 
         if n > 1:
             if temperature == 0:
@@ -132,10 +141,31 @@ class GemImg:
             if "inlineData" in part:
                 output_images.append(b64_to_img(part["inlineData"]["data"]))
 
+        # If grid is provided, slice the generated image(s) into subimages
+        original_grid_images = []
+        if grid is not None:
+            original_grid_images = output_images.copy()
+            sliced_images = []
+            for img in output_images:
+                sliced_images.extend(grid.slice_image(img))
+            output_images = sliced_images
+
         output_image_paths = []
         if save:
             response_id = response_data["responseId"]
             file_extension = "webp" if webp else "png"
+
+            # Save original grid image(s) if requested
+            if grid is not None and grid.save_original_image:
+                for idx, img in enumerate(original_grid_images):
+                    image_path = (
+                        f"{response_id}-grid.{file_extension}"
+                        if len(original_grid_images) == 1
+                        else f"{response_id}-grid-{idx}.{file_extension}"
+                    )
+                    full_path = os.path.join(save_dir, image_path)
+                    save_image(img, full_path, store_prompt, prompt)
+
             for idx, img in enumerate(output_images):
                 image_path = (
                     f"{response_id}.{file_extension}"

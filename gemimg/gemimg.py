@@ -238,3 +238,20 @@ class ImageGen:
                 subimages=self.subimages + other.subimages,
             )
         raise TypeError("Can only add ImageGen instances.")
+
+    def __repr__(self) -> str:
+        img_info = f"images={len(self.images)}"
+        if self.images:
+            img = self.images[0]
+            img_info += f" ({img.width}x{img.height})"
+        subimg_info = ""
+        if self.subimages:
+            subimg = self.subimages[0]
+            subimg_info = (
+                f", subimages={len(self.subimages)} ({subimg.width}x{subimg.height})"
+            )
+        usage_info = ""
+        if self.usages:
+            total_tokens = sum(u.total_tokens for u in self.usages)
+            usage_info = f", total_tokens={total_tokens}"
+        return f"ImageGen({img_info}{subimg_info}{usage_info})"

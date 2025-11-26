@@ -1,6 +1,7 @@
 import logging
 import os
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import List, Optional, Union
 
 import httpx
@@ -170,7 +171,7 @@ class GemImg:
             # Save all images in a single loop
             for img, suffix, track_path in images_to_save:
                 image_path = f"{response_id}{suffix}.{file_extension}"
-                full_path = os.path.join(save_dir, image_path)
+                full_path = Path(save_dir) / image_path
                 save_image(img, full_path, store_prompt, prompt)
                 if track_path:
                     output_image_paths.append(image_path)

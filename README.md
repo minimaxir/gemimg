@@ -151,7 +151,7 @@ This is just the tip of the iceberg of things you can do with Nano Banana (a blo
 
 ## Grid Generation
 
-One of the most cost-effective ways to generate multiple images is through grid generation. Nano Banana Pro can generate a grid of images in a single API call, which gemimg then automatically slices into individual images. This is _significantly_ cheaper than generating images one at a time.
+One cost-effective way to generate images is to generate multiple images simultaneously within a single generation at a higher resolution. Nano Banana Pro can generate a contiguous grid of images in a single API call without requiring shenanigans, which gemimg then automatically slices into individual images. This is cheaper than generating images one at a time through the base Nano Banana, and also benefits from the image quality improvements of Nano Banana Pro.
 
 ```py3
 from gemimg import GemImg, Grid
@@ -164,27 +164,27 @@ grid = Grid(rows=2, cols=2, image_size="2K")
 
 The `Grid` class lets you specify:
 
-- `rows` and `cols`: Grid dimensions (tested up to 4x4)
-- `aspect_ratio`: Aspect ratio for each cell (default: "1:1")
-- `image_size`: Resolution tier - "1K", "2K", or "4K" (default: "1K")
+- `rows` and `cols`: Grid dimensions
+- `aspect_ratio`: Aspect ratio for the base grid (default: "1:1")
+- `image_size`: "1K", "2K", or "4K" (default: "2K")
 - `save_original_image`: Whether to also save the full grid image (default: True)
 
 Now you can generate multiple images with a single call by describing a grid layout in your prompt:
 
 ```py3
 prompt = """
-Generate a 2x2 grid of images showing the four seasons.
-Top-left: Spring - cherry blossoms in a park
-Top-right: Summer - sunny beach with palm trees
-Bottom-left: Autumn - colorful fall foliage in a forest
-Bottom-right: Winter - snowy mountain landscape
+Generate a 2x2 contiguous grid showing the four seasons with the same composition across all images:
+- Top-left: Spring - cherry blossoms in a park
+- Top-right: Summer - sunny beach with palm trees
+- Bottom-left: Autumn - colorful fall foliage in a forest
+- Bottom-right: Winter - snowy mountain landscape
 """
 
 gen = g.generate(prompt, grid=grid)
 print(f"Generated {len(gen.subimages)} images")
 ```
 
-The original grid image is stored in `gen.images`, while the sliced subimages are stored in `gen.subimages` and saved individually. For maximum cost efficiency, use a 4x4 grid with 4K resolution to generate 16 images in a single API call:
+The original grid image is stored in `gen.images`, while the sliced subimages are stored in `gen.subimages` and saved individually. For maximum cost efficiency, use a 4x4 grid with 4K resolution to generate 16 Nano-Banana-sized images in a single API call ($0.015/image):
 
 ```py3
 grid_4x4 = Grid(rows=4, cols=4, image_size="4K")
@@ -192,8 +192,6 @@ grid_4x4 = Grid(rows=4, cols=4, image_size="4K")
 # grid_4x4.output_resolution = (1024, 1024)
 # grid_4x4.grid_resolution = (4096, 4096)
 ```
-
-Grid generation requires a Pro model variant (e.g., `gemini-3-pro-image`).
 
 [Jupyter Notebook](docs/notebooks/grid_generation.ipynb)
 

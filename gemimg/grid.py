@@ -29,7 +29,7 @@ class Grid:
     rows: int
     cols: int
     aspect_ratio: str = "1:1"
-    image_size: str = "1K"
+    image_size: str = "2K"
     save_original_image: bool = True
 
     def __post_init__(self) -> None:
@@ -41,7 +41,7 @@ class Grid:
 
         if self.rows * self.cols > 16:
             logger.warning(
-                f"Grid size {self.rows}x{self.cols} ({self.rows * self.cols} cells) exceeds tested maximum of 4x4 (16 cells). "
+                f"Grid size {self.rows}x{self.cols} ({self.rows * self.cols} cells) exceeds 16 cells. "
                 "This may result in poor image quality or generation failures."
             )
 

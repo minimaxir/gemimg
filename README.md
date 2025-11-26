@@ -181,10 +181,10 @@ Bottom-right: Winter - snowy mountain landscape
 """
 
 gen = g.generate(prompt, grid=grid)
-print(f"Generated {len(gen.images)} images")
+print(f"Generated {len(gen.subimages)} images")
 ```
 
-The generated images are automatically sliced and stored in `gen.images`, with each subimage saved individually. For maximum cost efficiency, use a 4x4 grid with 4K resolution to generate 16 images in a single API call:
+The original grid image is stored in `gen.images`, while the sliced subimages are stored in `gen.subimages` and saved individually. For maximum cost efficiency, use a 4x4 grid with 4K resolution to generate 16 images in a single API call:
 
 ```py3
 grid_4x4 = Grid(rows=4, cols=4, image_size="4K")

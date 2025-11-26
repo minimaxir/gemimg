@@ -141,9 +141,9 @@ class GemImg:
         ]
 
         # If grid is provided, slice the generated image(s) into subimages
-        original_grid_images = output_images.copy() if grid is not None else []
+        output_subimages = []
         if grid is not None:
-            output_images = [
+            output_subimages = [
                 sliced for img in output_images for sliced in grid.slice_image(img)
             ]
 
@@ -157,15 +157,14 @@ class GemImg:
 
             # Add original grid images if requested
             if grid is not None and grid.save_original_image:
-                for idx, img in enumerate(original_grid_images):
-                    suffix = (
-                        "-grid" if len(original_grid_images) == 1 else f"-grid-{idx}"
-                    )
+                for idx, img in enumerate(output_images):
+                    suffix = "-grid" if len(output_images) == 1 else f"-grid-{idx}"
                     images_to_save.append((img, suffix, False))
 
-            # Add output images (sliced if grid, otherwise original)
-            for idx, img in enumerate(output_images):
-                suffix = "" if len(output_images) == 1 else f"-{idx:02d}"
+            # Add subimages if grid, otherwise add original images
+            images_for_paths = output_subimages if grid is not None else output_images
+            for idx, img in enumerate(images_for_paths):
+                suffix = "" if len(images_for_paths) == 1 else f"-{idx:02d}"
                 images_to_save.append((img, suffix, True))
 
             # Save all images in a single loop
@@ -185,6 +184,7 @@ class GemImg:
                     completion_tokens=usage_metadata.get("candidatesTokenCount", -1),
                 )
             ],
+            subimages=output_subimages,
         )
 
     def _generate_multiple(self, n: int, **kwargs) -> "ImageGen":
@@ -215,6 +215,7 @@ class ImageGen:
     images: List[Image.Image] = field(default_factory=list)
     image_paths: List[str] = field(default_factory=list)
     usages: List[Usage] = field(default_factory=list)
+    subimages: List[Image.Image] = field(default_factory=list)
 
     @property
     def image(self) -> Optional[Image.Image]:
@@ -234,5 +235,6 @@ class ImageGen:
                 images=self.images + other.images,
                 image_paths=self.image_paths + other.image_paths,
                 usages=self.usages + other.usages,
+                subimages=self.subimages + other.subimages,
             )
         raise TypeError("Can only add ImageGen instances.")

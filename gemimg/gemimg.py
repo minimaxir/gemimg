@@ -134,47 +134,47 @@ class GemImg:
 
         response_parts = candidates["content"]["parts"]
 
-        output_images = []
-
-        # Parse response parts for text and images
-        for part in response_parts:
-            if "inlineData" in part:
-                output_images.append(b64_to_img(part["inlineData"]["data"]))
+        output_images = [
+            b64_to_img(part["inlineData"]["data"])
+            for part in response_parts
+            if "inlineData" in part
+        ]
 
         # If grid is provided, slice the generated image(s) into subimages
-        original_grid_images = []
+        original_grid_images = output_images.copy() if grid is not None else []
         if grid is not None:
-            original_grid_images = output_images.copy()
-            sliced_images = []
-            for img in output_images:
-                sliced_images.extend(grid.slice_image(img))
-            output_images = sliced_images
+            output_images = [
+                sliced for img in output_images for sliced in grid.slice_image(img)
+            ]
 
         output_image_paths = []
         if save:
             response_id = response_data["responseId"]
             file_extension = "webp" if webp else "png"
 
-            # Save original grid image(s) if requested
+            # Determine which images to save and their naming patterns
+            images_to_save = []
+
+            # Add original grid images if requested
             if grid is not None and grid.save_original_image:
                 for idx, img in enumerate(original_grid_images):
-                    image_path = (
-                        f"{response_id}-grid.{file_extension}"
-                        if len(original_grid_images) == 1
-                        else f"{response_id}-grid-{idx}.{file_extension}"
+                    suffix = (
+                        "-grid" if len(original_grid_images) == 1 else f"-grid-{idx}"
                     )
-                    full_path = os.path.join(save_dir, image_path)
-                    save_image(img, full_path, store_prompt, prompt)
+                    images_to_save.append((img, suffix, False))
 
+            # Add output images (sliced if grid, otherwise original)
             for idx, img in enumerate(output_images):
-                image_path = (
-                    f"{response_id}.{file_extension}"
-                    if len(output_images) == 1
-                    else f"{response_id}-{idx:02d}.{file_extension}"
-                )
+                suffix = "" if len(output_images) == 1 else f"-{idx:02d}"
+                images_to_save.append((img, suffix, True))
+
+            # Save all images in a single loop
+            for img, suffix, track_path in images_to_save:
+                image_path = f"{response_id}{suffix}.{file_extension}"
                 full_path = os.path.join(save_dir, image_path)
                 save_image(img, full_path, store_prompt, prompt)
-                output_image_paths.append(image_path)
+                if track_path:
+                    output_image_paths.append(image_path)
 
         return ImageGen(
             images=output_images,

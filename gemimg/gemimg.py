@@ -97,8 +97,8 @@ class GemImg:
                 raise ValueError("image_size must be one of '1K', '2K', or '4K'")
             query_params["generationConfig"]["imageConfig"]["imageSize"] = image_size
             if system_prompt:
-                query_params["system_instruction"]["parts"] = {
-                    "text": system_prompt.strip()
+                query_params["system_instruction"] = {
+                    "parts": [{"text": system_prompt.strip()}]
                 }
 
         headers = {"Content-Type": "application/json", "x-goog-api-key": self.api_key}
@@ -106,7 +106,7 @@ class GemImg:
 
         try:
             response = self.client.post(
-                api_url, json=query_params, headers=headers, timeout=120
+                api_url, json=query_params, headers=headers, timeout=180
             )
         except httpx.TimeoutException:
             logger.error("Request Timeout")

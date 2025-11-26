@@ -170,7 +170,7 @@ class GemImg:
                 image_path = (
                     f"{response_id}.{file_extension}"
                     if len(output_images) == 1
-                    else f"{response_id}-{idx}.{file_extension}"
+                    else f"{response_id}-{idx:02d}.{file_extension}"
                 )
                 full_path = os.path.join(save_dir, image_path)
                 save_image(img, full_path, store_prompt, prompt)

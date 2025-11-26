@@ -75,7 +75,9 @@ class GemImg:
         query_params = {
             "generationConfig": {
                 "temperature": temperature,
-                "imageConfig": {"aspectRatio": _validate_aspect(aspect_ratio)},
+                "imageConfig": {
+                    "aspectRatio": _validate_aspect(aspect_ratio, self.is_pro)
+                },
                 "responseModalities": ["Image"],
             },
             "contents": [{"parts": parts}],

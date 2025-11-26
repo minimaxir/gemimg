@@ -27,6 +27,11 @@ class GemImg:
                 "GEMINI_API_KEY is required. Pass it as `api_key`, set it as an environment variable or in .env file."
             )
 
+    @property
+    def is_pro(self) -> bool:
+        """Check if the model is a pro variant."""
+        return "-pro" in self.model
+
     def generate(
         self,
         prompt: Optional[str] = None,
@@ -76,7 +81,7 @@ class GemImg:
         }
 
         # may need a less hard-coded heuristic to detect Nano Banana Pro
-        if "-pro" in self.model:
+        if self.is_pro:
             if image_size not in ["1K", "2K", "4K"]:
                 raise ValueError("image_size must be one of '1K', '2K', or '4K'")
             query_params["generationConfig"]["imageConfig"]["imageSize"] = image_size

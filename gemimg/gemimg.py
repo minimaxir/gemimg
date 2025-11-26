@@ -108,7 +108,7 @@ class GemImg:
             response = self.client.post(
                 api_url, json=query_params, headers=headers, timeout=120
             )
-        except httpx.exceptions.Timeout:
+        except httpx.TimeoutException:
             logger.error("Request Timeout")
             return None
         except httpx.HTTPStatusError as e:

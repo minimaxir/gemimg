@@ -1,7 +1,6 @@
 import logging
 import os
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import List, Optional, Union
 
 import httpx
@@ -9,7 +8,13 @@ from dotenv import load_dotenv
 from PIL import Image
 
 from .grid import Grid
-from .utils import _validate_aspect, b64_to_img, img_b64_part, img_to_b64, save_image
+from .utils import (
+    _validate_aspect,
+    b64_to_img,
+    img_b64_part,
+    img_to_b64,
+    save_images_batch,
+)
 
 load_dotenv()
 
@@ -153,32 +158,22 @@ class GemImg:
         if save:
             response_id = response_data["responseId"]
             file_extension = "webp" if webp else "png"
+            save_kwargs = {
+                "response_id": response_id,
+                "save_dir": save_dir,
+                "file_extension": file_extension,
+                "store_prompt": store_prompt,
+                "prompt": prompt,
+            }
 
             if grid is not None:
-                # Save original grid images only if requested
                 if grid.save_original_image:
-                    for idx, img in enumerate(output_images):
-                        suffix = "-grid" if len(output_images) == 1 else f"-grid-{idx}"
-                        image_path = f"{response_id}{suffix}.{file_extension}"
-                        full_path = Path(save_dir) / image_path
-                        save_image(img, full_path, store_prompt, prompt)
-                        output_image_paths.append(image_path)
-
-                # Save subimages
-                for idx, img in enumerate(output_subimages):
-                    suffix = "" if len(output_subimages) == 1 else f"-{idx:02d}"
-                    image_path = f"{response_id}{suffix}.{file_extension}"
-                    full_path = Path(save_dir) / image_path
-                    save_image(img, full_path, store_prompt, prompt)
-                    output_subimage_paths.append(image_path)
+                    output_image_paths = save_images_batch(output_images, **save_kwargs)
+                output_subimage_paths = save_images_batch(
+                    output_subimages, **save_kwargs
+                )
             else:
-                # No grid: save original images
-                for idx, img in enumerate(output_images):
-                    suffix = "" if len(output_images) == 1 else f"-{idx:02d}"
-                    image_path = f"{response_id}{suffix}.{file_extension}"
-                    full_path = Path(save_dir) / image_path
-                    save_image(img, full_path, store_prompt, prompt)
-                    output_image_paths.append(image_path)
+                output_image_paths = save_images_batch(output_images, **save_kwargs)
 
         return ImageGen(
             images=output_images,

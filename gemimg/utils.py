@@ -1,6 +1,7 @@
 import base64
 import io
 import math
+from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 from PIL import Image, PngImagePlugin
@@ -172,6 +173,38 @@ def save_image(
         img.save(path, pnginfo=pnginfo)
     else:
         img.save(path)
+
+
+def save_images_batch(
+    images: List[Image.Image],
+    response_id: str,
+    save_dir: str,
+    file_extension: str,
+    store_prompt: bool = False,
+    prompt: Optional[str] = None,
+) -> List[str]:
+    """
+    Save a batch of images with consistent naming and return their paths.
+
+    Args:
+        images: List of PIL Images to save.
+        response_id: The response ID to use as filename base.
+        save_dir: Directory to save images in.
+        file_extension: File extension (e.g., "png", "webp").
+        store_prompt: Whether to store the prompt in PNG metadata.
+        prompt: The prompt text to store in metadata.
+
+    Returns:
+        List of relative image paths that were saved.
+    """
+    saved_paths = []
+    for idx, img in enumerate(images):
+        suffix = "" if len(images) == 1 else f"-{idx:02d}"
+        image_path = f"{response_id}{suffix}.{file_extension}"
+        full_path = Path(save_dir) / image_path
+        save_image(img, str(full_path), store_prompt, prompt)
+        saved_paths.append(image_path)
+    return saved_paths
 
 
 def composite_images(

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gemimg"
-version = "0.3.2"
+version = "0.4.0"
 description = "Lightweight wrapper for generating and editing images from Nano Banana / Gemini 2.5 Flash Image."
 readme = "README.md"
 license = "MIT"

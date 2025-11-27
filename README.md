@@ -151,7 +151,7 @@ This is just the tip of the iceberg of things you can do with Nano Banana (a blo
 
 ## Grid Generation
 
-One cost-effective way to generate images is to generate multiple images simultaneously within a single generation at a higher resolution. Nano Banana Pro can generate a contiguous grid of images in a single API call without requiring shenanigans, which gemimg then automatically slices into individual images. This is cheaper than generating images one at a time through the base Nano Banana, and also benefits from the image quality improvements of Nano Banana Pro.
+One cost-effective way to generate images is to generate multiple images simultaneously within a single generation at a higher resolution. Nano Banana Pro can generate a contiguous grid of images in a single API call without requiring shenanigans, which gemimg then automatically slices into individual images. This is cheaper than generating images one at a time through the base Nano Banana, and also benefits from the image quality improvements of Nano Banana Pro. ([Jupyter Notebook](docs/notebooks/grid_generation.ipynb))
 
 ```py3
 from gemimg import GemImg, Grid
@@ -172,19 +172,20 @@ The `Grid` class lets you specify:
 Now you can generate multiple images with a single call by describing a grid layout in your prompt:
 
 ```py3
+# The prompt should mention the grid dimensions and the number of distinct total images
 prompt = """
 Generate a 2x2 contiguous grid showing the four seasons with the same composition across all images:
-- Top-left: Spring - cherry blossoms in a park
-- Top-right: Summer - sunny beach with palm trees
-- Bottom-left: Autumn - colorful fall foliage in a forest
-- Bottom-right: Winter - snowy mountain landscape
+- Spring - cherry blossoms in a park
+- Summer - sunny beach with palm trees
+- Autumn - colorful fall foliage in a forest
+- Winter - snowy mountain landscape
 """
 
 gen = g.generate(prompt, grid=grid)
 print(f"Generated {len(gen.subimages)} images")
 ```
 
-The original grid image is stored in `gen.images`, while the sliced subimages are stored in `gen.subimages` and saved individually. For maximum cost efficiency, use a 4x4 grid with 4K resolution to generate 16 Nano-Banana-sized images in a single API call ($0.015/image):
+The original grid image is stored in `gen.images`, while the sliced subimages are stored in `gen.subimages` and saved individually. For maximum cost efficiency, use a 4x4 grid with 4K resolution to generate 16 Nano-Banana-sized images in a single API call (~$0.015/image):
 
 ```py3
 grid_4x4 = Grid(rows=4, cols=4, image_size="4K")
@@ -192,8 +193,6 @@ grid_4x4 = Grid(rows=4, cols=4, image_size="4K")
 # grid_4x4.output_resolution = (1024, 1024)
 # grid_4x4.grid_resolution = (4096, 4096)
 ```
-
-[Jupyter Notebook](docs/notebooks/grid_generation.ipynb)
 
 ## Command-Line Interface
 

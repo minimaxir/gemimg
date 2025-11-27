@@ -26,7 +26,9 @@ class GemImg:
     api_key: str = field(default=os.getenv("GEMINI_API_KEY"), repr=False)
     client: httpx.Client = field(default_factory=httpx.Client, repr=False)
     model: str = "gemini-2.5-flash-image"
-    base_url: str = "https://generativelanguage.googleapis.com"
+    base_url: str = field(
+        default="https://generativelanguage.googleapis.com", repr=False
+    )
 
     def __post_init__(self):
         if not self.api_key:

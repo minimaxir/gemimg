@@ -158,6 +158,8 @@ class GemImg:
         output_image_paths = []
         output_subimage_paths = []
         if save:
+            if save_dir:
+                os.makedirs(save_dir, exist_ok=True)
             response_id = response_data["responseId"]
             file_extension = "webp" if webp else "png"
             save_kwargs = {

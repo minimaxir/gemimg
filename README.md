@@ -156,7 +156,7 @@ One cost-effective way to generate images is to generate multiple images simulta
 ```py3
 from gemimg import GemImg, Grid
 
-g = GemImg(model="gemini-3-pro-image")
+g = GemImg(model="gemini-3-pro-image-preview")
 
 # Create a 2x2 grid configuration
 grid = Grid(rows=2, cols=2, image_size="2K")

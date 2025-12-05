@@ -1,12 +1,14 @@
 import base64
 import io
 import math
-from typing import List, Optional, Tuple, Union
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple, Union
 
 from PIL import Image, PngImagePlugin
 
 # https://ai.google.dev/gemini-api/docs/image-generation#aspect_ratios
-VALID_ASPECTS = {
+# Gemini 2.5 Flash Image aspect ratios
+VALID_ASPECTS_FLASH: Dict[str, Tuple[int, int]] = {
     "1:1": (1024, 1024),
     "2:3": (832, 1248),
     "3:2": (1248, 832),
@@ -19,21 +21,53 @@ VALID_ASPECTS = {
     "21:9": (1536, 672),
 }
 
+# Gemini 3 Pro Image aspect ratios (1K resolution)
+VALID_ASPECTS_PRO: Dict[str, Tuple[int, int]] = {
+    "1:1": (1024, 1024),
+    "2:3": (848, 1264),
+    "3:2": (1264, 848),
+    "3:4": (896, 1200),
+    "4:3": (1200, 896),
+    "4:5": (928, 1152),
+    "5:4": (1152, 928),
+    "9:16": (768, 1376),
+    "16:9": (1376, 768),
+    "21:9": (1584, 672),
+}
 
-_VALID_ASPECTS_SET = set(VALID_ASPECTS.keys())
-_VALID_DIMS = set(VALID_ASPECTS.values())
-_VALID_DIMS_SET = (
-    _VALID_DIMS
-    | {(w * 2, h * 2) for w, h in _VALID_DIMS}
-    | {(w * 4, h * 4) for w, h in _VALID_DIMS}
+_VALID_ASPECTS_FLASH_SET = set(VALID_ASPECTS_FLASH.keys())
+_VALID_ASPECTS_PRO_SET = set(VALID_ASPECTS_PRO.keys())
+
+# Combine all valid dimensions from both models for image validation
+_ALL_VALID_DIMS = set(VALID_ASPECTS_FLASH.values()) | set(VALID_ASPECTS_PRO.values())
+_ALL_VALID_DIMS_SET = (
+    _ALL_VALID_DIMS
+    | {(w * 2, h * 2) for w, h in _ALL_VALID_DIMS}
+    | {(w * 4, h * 4) for w, h in _ALL_VALID_DIMS}
 )
 
 
-def _validate_aspect(aspect_ratio: str) -> str:
-    if aspect_ratio not in _VALID_ASPECTS_SET:
+def _validate_aspect(aspect_ratio: str, is_pro: bool = False) -> str:
+    """
+    Validate an aspect ratio for the specified model.
+
+    Args:
+        aspect_ratio: The aspect ratio string to validate (e.g., "16:9")
+        is_pro: Whether validating for Pro model. If False, validates for Flash.
+
+    Returns:
+        The validated aspect ratio string
+
+    Raises:
+        ValueError: If the aspect ratio is not supported by the model
+    """
+    valid_set = _VALID_ASPECTS_PRO_SET if is_pro else _VALID_ASPECTS_FLASH_SET
+    valid_dict = VALID_ASPECTS_PRO if is_pro else VALID_ASPECTS_FLASH
+
+    if aspect_ratio not in valid_set:
         raise ValueError(
             f"'{aspect_ratio}' is invalid. "
-            f"Supported aspect ratios: {', '.join(VALID_ASPECTS.keys())}"
+            f"Supported aspect ratios: {', '.join(valid_dict.keys())}"
         )
     return aspect_ratio
 
@@ -52,7 +86,7 @@ def resize_image(img: Image.Image, max_size: int = 1024) -> Image.Image:
     """
 
     # if the image is from the API, do not resize
-    if img.size in _VALID_DIMS_SET:
+    if img.size in _ALL_VALID_DIMS_SET:
         return img
 
     width, height = img.size
@@ -139,6 +173,38 @@ def save_image(
         img.save(path, pnginfo=pnginfo)
     else:
         img.save(path)
+
+
+def save_images_batch(
+    images: List[Image.Image],
+    response_id: str,
+    save_dir: str,
+    file_extension: str,
+    store_prompt: bool = False,
+    prompt: Optional[str] = None,
+) -> List[str]:
+    """
+    Save a batch of images with consistent naming and return their paths.
+
+    Args:
+        images: List of PIL Images to save.
+        response_id: The response ID to use as filename base.
+        save_dir: Directory to save images in.
+        file_extension: File extension (e.g., "png", "webp").
+        store_prompt: Whether to store the prompt in PNG metadata.
+        prompt: The prompt text to store in metadata.
+
+    Returns:
+        List of relative image paths that were saved.
+    """
+    saved_paths = []
+    for idx, img in enumerate(images):
+        suffix = "" if len(images) == 1 else f"-{idx:02d}"
+        image_path = f"{response_id}{suffix}.{file_extension}"
+        full_path = Path(save_dir) / image_path
+        save_image(img, str(full_path), store_prompt, prompt)
+        saved_paths.append(image_path)
+    return saved_paths
 
 
 def composite_images(

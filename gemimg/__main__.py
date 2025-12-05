@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 from .gemimg import GemImg
+from .grid import Grid
 from .utils import save_image
 
 
@@ -64,9 +65,34 @@ def main():
         help="Store the prompt in the image metadata.",
     )
     parser.add_argument(
-        "--image_size",
+        "--image-size",
         default="2K",
-        help="Image size for the generation (Nano Banana Pro only).",
+        help="Image size for the generation (Pro models only).",
+    )
+    parser.add_argument(
+        "--system-prompt",
+        default=None,
+        help="System prompt for the generation (Pro models only).",
+    )
+    parser.add_argument(
+        "--grid",
+        default=None,
+        help="Grid dimensions as ROWSxCOLS (e.g., 2x2). Pro models only.",
+    )
+    parser.add_argument(
+        "--grid-aspect-ratio",
+        default="1:1",
+        help="Aspect ratio for grid cells (default: 1:1).",
+    )
+    parser.add_argument(
+        "--grid-image-size",
+        default="2K",
+        help="Image size for grid generation (default: 2K).",
+    )
+    parser.add_argument(
+        "--save-grid-original",
+        action="store_true",
+        help="Save the original grid image before slicing.",
     )
     parser.add_argument(
         "-f",
@@ -89,6 +115,23 @@ def main():
 
     gem_img = GemImg(api_key=args.api_key, model=args.model, base_url=base_url)
 
+    # Parse grid dimensions if provided
+    grid = None
+    if args.grid:
+        try:
+            rows, cols = map(int, args.grid.lower().split("x"))
+            grid = Grid(
+                rows=rows,
+                cols=cols,
+                aspect_ratio=args.grid_aspect_ratio,
+                image_size=args.grid_image_size,
+                save_original_image=args.save_grid_original,
+            )
+        except ValueError:
+            parser.error(
+                f"Invalid grid format '{args.grid}'. Use ROWSxCOLS (e.g., 2x2)."
+            )
+
     # We call generate with save=False to handle file saving manually.
     result = gem_img.generate(
         prompt=args.prompt,
@@ -100,6 +143,9 @@ def main():
         webp=args.webp,
         n=args.n,
         store_prompt=args.store_prompt,
+        image_size=args.image_size,
+        system_prompt=args.system_prompt,
+        grid=grid,
     )
 
     if result and result.images:

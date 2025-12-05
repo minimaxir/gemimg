@@ -149,6 +149,54 @@ gen = g.generate(prompt, "pose_control_base.png")
 
 This is just the tip of the iceberg of things you can do with Nano Banana (a blog post is coming shortly). By leveraging Nano Banana's long context window, you can even give it HTML and have it render a webpage ([Jupyter Notebook](/docs/notebooks/html_webpage.ipynb)). And that's not even getting into JSON prompting of the model, which can offer _extremely_ granular control of the generation. ([Jupyter Notebook](docs/notebooks/character_json.ipynb))
 
+## Grid Generation
+
+One cost-effective way to generate images is to generate multiple images simultaneously within a single generation at a higher resolution. Nano Banana Pro can generate a contiguous grid of images in a single API call without requiring an input image, which gemimg then automatically slices into individual images. This is cheaper than generating images one at a time through the base Nano Banana, and also benefits from the image quality/adherence improvements of Nano Banana Pro. ([Jupyter Notebook](docs/notebooks/grid_generation.ipynb))
+
+```py3
+from gemimg import GemImg, Grid
+
+g = GemImg(model="gemini-3-pro-image-preview")
+
+# Create a 2x2 grid configuration
+grid = Grid(rows=2, cols=2, image_size="2K")
+```
+
+The `Grid` class lets you specify:
+
+- `rows` and `cols`: Grid dimensions
+- `aspect_ratio`: Aspect ratio for the base grid (default: "1:1")
+- `image_size`: "1K", "2K", or "4K" (default: "2K")
+- `save_original_image`: Whether to also save the full grid image (default: True)
+
+Now you can generate multiple images with a single call by describing a grid layout in your prompt:
+
+```py3
+# The prompt should mention the grid dimensions and the number of distinct total images
+prompt = """
+Generate a 2x2 contiguous grid of 4 distinct award-winning images of a pair of cherry blossom trees in the following artistic styles, maintaining the same image composition of the trees across all 4 images:
+- Oil Painting
+- Watercolor
+- Digital Art
+- Pencil Sketch
+"""
+
+gen = g.generate(prompt, grid=grid)
+```
+
+![](docs/gens/9sQnabOuMbyeqtsP7_LXEA.webp)
+
+The original grid image is stored in `gen.images`, while the sliced subimages are stored in `gen.subimages` and saved individually. For maximum cost efficiency, use a 4x4 grid with 4K resolution to generate 16 Nano-Banana-sized images in a single API call (~$0.015/image):
+
+```py3
+grid_4x4 = Grid(rows=4, cols=4, image_size="4K")
+# grid_4x4.num_images = 16
+# grid_4x4.output_resolution = (1024, 1024)
+# grid_4x4.grid_resolution = (4096, 4096)
+```
+
+Your mileage may vary on overall prompt adherence with these grids, but it's worthwhile for experimentation.
+
 ## Command-Line Interface
 
 gemimg can also be used from the command line without writing Python code:

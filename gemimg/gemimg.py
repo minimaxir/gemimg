@@ -7,7 +7,14 @@ import httpx
 from dotenv import load_dotenv
 from PIL import Image
 
-from .utils import _validate_aspect, b64_to_img, img_b64_part, img_to_b64, save_image
+from .grid import Grid
+from .utils import (
+    _validate_aspect,
+    b64_to_img,
+    img_b64_part,
+    img_to_b64,
+    save_images_batch,
+)
 
 load_dotenv()
 
@@ -19,13 +26,20 @@ class GemImg:
     api_key: str = field(default=os.getenv("GEMINI_API_KEY"), repr=False)
     client: httpx.Client = field(default_factory=httpx.Client, repr=False)
     model: str = "gemini-2.5-flash-image"
-    base_url: str = "https://generativelanguage.googleapis.com"
+    base_url: str = field(
+        default="https://generativelanguage.googleapis.com", repr=False
+    )
 
     def __post_init__(self):
         if not self.api_key:
             raise ValueError(
                 "GEMINI_API_KEY is required. Pass it as `api_key`, set it as an environment variable or in .env file."
             )
+
+    @property
+    def is_pro(self) -> bool:
+        """Check if the model is a pro variant."""
+        return "-pro" in self.model
 
     def generate(
         self,
@@ -40,9 +54,18 @@ class GemImg:
         n: int = 1,
         store_prompt: bool = False,
         image_size: str = "2K",
+        system_prompt: Optional[str] = None,
+        grid: Optional[Grid] = None,
     ) -> Optional["ImageGen"]:
         if not prompt and not imgs:
             raise ValueError("Either 'prompt' or 'imgs' must be provided")
+
+        # If grid is provided, use its aspect_ratio and image_size
+        if grid is not None:
+            if not self.is_pro:
+                raise ValueError("Grid generation requires a Pro model")
+            aspect_ratio = grid.aspect_ratio
+            image_size = grid.image_size
 
         if n > 1:
             if temperature == 0:
@@ -69,26 +92,31 @@ class GemImg:
         query_params = {
             "generationConfig": {
                 "temperature": temperature,
-                "imageConfig": {"aspectRatio": _validate_aspect(aspect_ratio)},
+                "imageConfig": {
+                    "aspectRatio": _validate_aspect(aspect_ratio, self.is_pro)
+                },
                 "responseModalities": ["Image"],
             },
             "contents": [{"parts": parts}],
         }
 
-        # may need a less hard-coded heuristic to detect Nano Banana Pro
-        if "-pro" in self.model:
+        if self.is_pro:
             if image_size not in ["1K", "2K", "4K"]:
                 raise ValueError("image_size must be one of '1K', '2K', or '4K'")
             query_params["generationConfig"]["imageConfig"]["imageSize"] = image_size
+            if system_prompt:
+                query_params["system_instruction"] = {
+                    "parts": [{"text": system_prompt.strip()}]
+                }
 
         headers = {"Content-Type": "application/json", "x-goog-api-key": self.api_key}
         api_url = f"{self.base_url}/v1beta/models/{self.model}:generateContent"
 
         try:
             response = self.client.post(
-                api_url, json=query_params, headers=headers, timeout=120
+                api_url, json=query_params, headers=headers, timeout=180
             )
-        except httpx.exceptions.Timeout:
+        except httpx.TimeoutException:
             logger.error("Request Timeout")
             return None
         except httpx.HTTPStatusError as e:
@@ -114,26 +142,42 @@ class GemImg:
 
         response_parts = candidates["content"]["parts"]
 
-        output_images = []
+        output_images = [
+            b64_to_img(part["inlineData"]["data"])
+            for part in response_parts
+            if "inlineData" in part
+        ]
 
-        # Parse response parts for text and images
-        for part in response_parts:
-            if "inlineData" in part:
-                output_images.append(b64_to_img(part["inlineData"]["data"]))
+        # If grid is provided, slice the generated image(s) into subimages
+        output_subimages = []
+        if grid is not None:
+            output_subimages = [
+                sliced for img in output_images for sliced in grid.slice_image(img)
+            ]
 
         output_image_paths = []
+        output_subimage_paths = []
         if save:
+            if save_dir:
+                os.makedirs(save_dir, exist_ok=True)
             response_id = response_data["responseId"]
             file_extension = "webp" if webp else "png"
-            for idx, img in enumerate(output_images):
-                image_path = (
-                    f"{response_id}.{file_extension}"
-                    if len(output_images) == 1
-                    else f"{response_id}-{idx}.{file_extension}"
+            save_kwargs = {
+                "response_id": response_id,
+                "save_dir": save_dir,
+                "file_extension": file_extension,
+                "store_prompt": store_prompt,
+                "prompt": prompt,
+            }
+
+            if grid is not None:
+                if grid.save_original_image:
+                    output_image_paths = save_images_batch(output_images, **save_kwargs)
+                output_subimage_paths = save_images_batch(
+                    output_subimages, **save_kwargs
                 )
-                full_path = os.path.join(save_dir, image_path)
-                save_image(img, full_path, store_prompt, prompt)
-                output_image_paths.append(image_path)
+            else:
+                output_image_paths = save_images_batch(output_images, **save_kwargs)
 
         return ImageGen(
             images=output_images,
@@ -144,6 +188,8 @@ class GemImg:
                     completion_tokens=usage_metadata.get("candidatesTokenCount", -1),
                 )
             ],
+            subimages=output_subimages,
+            subimage_paths=output_subimage_paths,
         )
 
     def _generate_multiple(self, n: int, **kwargs) -> "ImageGen":
@@ -174,6 +220,8 @@ class ImageGen:
     images: List[Image.Image] = field(default_factory=list)
     image_paths: List[str] = field(default_factory=list)
     usages: List[Usage] = field(default_factory=list)
+    subimages: List[Image.Image] = field(default_factory=list)
+    subimage_paths: List[str] = field(default_factory=list)
 
     @property
     def image(self) -> Optional[Image.Image]:
@@ -193,5 +241,24 @@ class ImageGen:
                 images=self.images + other.images,
                 image_paths=self.image_paths + other.image_paths,
                 usages=self.usages + other.usages,
+                subimages=self.subimages + other.subimages,
+                subimage_paths=self.subimage_paths + other.subimage_paths,
             )
         raise TypeError("Can only add ImageGen instances.")
+
+    def __repr__(self) -> str:
+        img_info = f"images={len(self.images)}"
+        if self.images:
+            img = self.images[0]
+            img_info += f" ({img.width}x{img.height})"
+        subimg_info = ""
+        if self.subimages:
+            subimg = self.subimages[0]
+            subimg_info = (
+                f", subimages={len(self.subimages)} ({subimg.width}x{subimg.height})"
+            )
+        usage_info = ""
+        if self.usages:
+            total_tokens = sum(u.total_tokens for u in self.usages)
+            usage_info = f", total_tokens={total_tokens}"
+        return f"ImageGen({img_info}{subimg_info}{usage_info})"

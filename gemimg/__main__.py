@@ -86,8 +86,8 @@ def main():
     )
     parser.add_argument(
         "--grid-image-size",
-        default="1K",
-        help="Image size for grid generation (default: 1K).",
+        default="2K",
+        help="Image size for grid generation (default: 2K).",
     )
     parser.add_argument(
         "--save-grid-original",

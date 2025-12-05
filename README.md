@@ -184,7 +184,7 @@ Generate a 2x2 contiguous grid of 4 distinct award-winning images of a pair of c
 gen = g.generate(prompt, grid=grid)
 ```
 
-![](docs/gens/9sQnabOuMbyeqtsP7_LXEA.webp)
+![](/docs/notebooks/gens/9sQnabOuMbyeqtsP7_LXEA.webp)
 
 The original grid image is stored in `gen.images`, while the sliced subimages are stored in `gen.subimages` and saved individually. For maximum cost efficiency, use a 4x4 grid with 4K resolution to generate 16 Nano-Banana-sized images in a single API call (~$0.015/image):
 
